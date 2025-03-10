@@ -18,21 +18,21 @@ export default function Command() {
   const createAndOpenFile = async (values: FormValues) => {
     try {
       setIsCreating(true);
-      
+
       // Ensure title has .md extension
       let fileName = values.title;
       if (!fileName.endsWith(".md")) {
         fileName += ".md";
       }
-      
+
       // Create full file path
       const filePath = path.join(markdownDir, fileName);
-      
+
       // Check if directory exists, create if not
       if (!fs.existsSync(markdownDir)) {
         fs.mkdirSync(markdownDir, { recursive: true });
       }
-      
+
       // Check if file already exists
       if (fs.existsSync(filePath)) {
         showToast({
@@ -43,17 +43,17 @@ export default function Command() {
         setIsCreating(false);
         return;
       }
-      
+
       // Create empty file
       fs.writeFileSync(filePath, `# ${values.title.replace(/\.md$/, "")}\n\n`);
-      
+
       // Show success toast
       showToast({
         style: Toast.Style.Success,
         title: "File created",
         message: `Created ${fileName}`,
       });
-      
+
       // Open in Typora
       openInTypora(filePath);
     } catch (error) {
@@ -94,20 +94,11 @@ export default function Command() {
     <Form
       actions={
         <ActionPanel>
-          <Action.SubmitForm
-            title="Create Markdown File"
-            onSubmit={createAndOpenFile}
-            isLoading={isCreating}
-          />
+          <Action.SubmitForm title="Create Markdown File" onSubmit={createAndOpenFile} isLoading={isCreating} />
         </ActionPanel>
       }
     >
-      <Form.TextField
-        id="title"
-        title="File Title"
-        placeholder="Enter title for new markdown file"
-        autoFocus
-      />
+      <Form.TextField id="title" title="File Title" placeholder="Enter title for new markdown file" autoFocus />
     </Form>
   );
 }

@@ -1,4 +1,14 @@
-import { List, ActionPanel, Action, showToast, Toast, getPreferenceValues, confirmAlert, Icon } from "@raycast/api";
+import {
+  List,
+  ActionPanel,
+  Action,
+  showToast,
+  Toast,
+  Alert,
+  getPreferenceValues,
+  confirmAlert,
+  Icon,
+} from "@raycast/api";
 import { useState, useEffect } from "react";
 import * as fs from "fs";
 import * as path from "path";
@@ -25,7 +35,7 @@ export default function Command() {
       if (!fs.existsSync(markdownDir)) {
         fs.mkdirSync(markdownDir, { recursive: true });
       }
-      
+
       const markdownFiles = fs
         .readdirSync(markdownDir)
         .filter((file) => file.endsWith(".md"))
@@ -33,10 +43,10 @@ export default function Command() {
           const filePath = path.join(markdownDir, file);
           const stats = fs.statSync(filePath);
           const modifiedTime = stats.mtime;
-          
+
           // Use unified detailed time format
-          const detailedTime = `${modifiedTime.getFullYear()}/${(modifiedTime.getMonth() + 1).toString().padStart(2, '0')}/${modifiedTime.getDate().toString().padStart(2, '0')} ${modifiedTime.getHours().toString().padStart(2, '0')}:${modifiedTime.getMinutes().toString().padStart(2, '0')}`;
-          
+          const detailedTime = `${modifiedTime.getFullYear()}/${(modifiedTime.getMonth() + 1).toString().padStart(2, "0")}/${modifiedTime.getDate().toString().padStart(2, "0")} ${modifiedTime.getHours().toString().padStart(2, "0")}:${modifiedTime.getMinutes().toString().padStart(2, "0")}`;
+
           return {
             title: file,
             path: filePath,
@@ -46,7 +56,7 @@ export default function Command() {
         })
         // Sort by modified time, newest first
         .sort((a, b) => b.modifiedTime.getTime() - a.modifiedTime.getTime());
-      
+
       setFiles(markdownFiles);
     } catch (e) {
       if (e instanceof Error) {
@@ -103,7 +113,7 @@ export default function Command() {
       message: `Are you sure you want to move "${file.title}" to the trash?`,
       primaryAction: {
         title: "Move to Trash",
-        style: Toast.Style.Destructive,
+        style: Alert.ActionStyle.Destructive,
       },
     };
 
@@ -139,10 +149,7 @@ export default function Command() {
   };
 
   return (
-    <List
-      isLoading={isLoading}
-      searchBarPlaceholder="Search Markdown files..."
-    >
+    <List isLoading={isLoading} searchBarPlaceholder="Search Markdown files...">
       {files.map((file) => (
         <List.Item
           key={file.path}
@@ -151,11 +158,7 @@ export default function Command() {
           accessories={[{ text: file.detailedTime, tooltip: "Last modified" }]}
           actions={
             <ActionPanel>
-              <Action
-                title="Open in Typora"
-                onAction={() => openInTypora(file.path)}
-                icon={Icon.ArrowRight}
-              />
+              <Action title="Open in Typora" onAction={() => openInTypora(file.path)} icon={Icon.ArrowRight} />
               <Action
                 title="Move to Trash"
                 icon={Icon.Trash}

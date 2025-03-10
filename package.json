@@ -22,7 +22,7 @@
     {
       "name": "recent-files",
       "title": "Recent Files",
-      "description": "List and open recently accessed Typora files",
+      "description": "Browse and manage recently modified Markdown files in Typora",
       "mode": "view",
       "subtitle": "Typora",
       "icon": "extension-icon-2.png"
