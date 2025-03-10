@@ -92,9 +92,10 @@ export default function Command() {
 
   return (
     <Form
+      isLoading={isCreating} // Move isLoading to Form component
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Create Markdown File" onSubmit={createAndOpenFile} isLoading={isCreating} />
+          <Action.SubmitForm title="Create Markdown File" onSubmit={createAndOpenFile} />
         </ActionPanel>
       }
     >

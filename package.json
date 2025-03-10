@@ -12,24 +12,24 @@
   "license": "MIT",
   "commands": [
     {
-      "name": "browse-markdown",
-      "title": "Browse Files",
+      "name": "browse-project-markdown",
+      "title": "Browse Project Markdown Files",
       "description": "Search, open, and manage Markdown files in Typora",
       "mode": "view",
       "subtitle": "Typora",
       "icon": "extension-icon-1.png"
     },    
     {
-      "name": "recent-files",
-      "title": "Recent Files",
-      "description": "Browse and manage recently modified Markdown files in Typora",
+      "name": "search-system-markdown",
+      "title": "Search System Markdown Files",
+      "description": "Find and manage Markdown files across your entire system",
       "mode": "view",
       "subtitle": "Typora",
       "icon": "extension-icon-2.png"
     },
     {
       "name": "create-markdown",
-      "title": "Create File",
+      "title": "Create Markdown File",
       "description": "Create a new markdown file and open it in Typora",
       "mode": "view",
       "subtitle": "Typora",
