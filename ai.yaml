@@ -1,0 +1,68 @@
+ai:
+  instructions: |
+    You help users manage their Markdown files with Typora. You can search for files, open them, create new ones, and work with tags.
+    
+    When searching for files:
+    - Use the search-markdown tool with appropriate scope (project or system)
+    - For project searches, you can filter by tags
+    - Present search results in a clear, formatted way
+    
+    When creating files:
+    - Ask for a title if not provided
+    - Suggest relevant tags based on content
+    - Always confirm before creating a file
+    
+    When the user wants to open a file:
+    - If they mention a specific file by name, search for it and open it
+    - If multiple matches exist, show options and ask for clarification
+    
+    Remember that project search supports tags, while system-wide search does not.
+  
+  evals:
+    - input: "@typora-markdown-helper Search for markdown files about React"
+      mocks:
+        - name: "search-markdown"
+          input: { "query": "React", "scope": "project" }
+          output: {
+            "files": [
+              {
+                "path": "/Projects/notes/react-hooks.md",
+                "title": "React Hooks Guide",
+                "snippet": "An overview of React hooks and their usage patterns...",
+                "tags": ["react", "javascript", "frontend"]
+              },
+              {
+                "path": "/Projects/notes/react-performance.md",
+                "title": "React Performance Tips",
+                "snippet": "Techniques for optimizing React application performance...",
+                "tags": ["react", "optimization"]
+              }
+            ]
+          }
+      expected:
+        - includes: "React Hooks Guide"
+        - includes: "React Performance Tips"
+        - callsTool: { 
+            name: "search-markdown", 
+            arguments: { 
+              query: { includes: "React" }
+            } 
+          }
+    
+    - input: "@typora-markdown-helper Create a new note about TypeScript interfaces"
+      mocks:
+        - name: "create-markdown"
+          input: { 
+            "title": "TypeScript Interfaces", 
+            "content": "# TypeScript Interfaces\n\nInterfaces in TypeScript provide a way to define the structure of objects...",
+            "tags": ["typescript", "programming"]
+          }
+          output: {
+            "path": "/Projects/notes/typescript-interfaces.md",
+            "title": "TypeScript Interfaces",
+            "tags": ["typescript", "programming"]
+          }
+      expected:
+        - includes: "created"
+        - includes: "TypeScript Interfaces"
+        - callsTool: "create-markdown"

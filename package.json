@@ -28,6 +28,35 @@
       "icon": "extension-icon-2.png"
     }
   ],
+  "tools": [
+    {
+      "name": "search-markdown",
+      "title": "Search Markdown Files",
+      "description": "Search for markdown files based on query, scope, and optional tags",
+      "icon": "extension-icon-1.png"
+    },
+    {
+      "name": "open-markdown",
+      "title": "Open Markdown File",
+      "description": "Open a markdown file in Typora",
+      "icon": "extension-icon-1.png"
+    },
+    {
+      "name": "create-markdown",
+      "title": "Create Markdown File",
+      "description": "Create a new markdown file with the specified title, content, and tags",
+      "icon": "extension-icon-1.png"
+    },
+    {
+      "name": "get-tags",
+      "title": "Get Markdown Tags",
+      "description": "Get all available tags from project markdown files",
+      "icon": "extension-icon-1.png"
+    }
+  ],
+  "ai": {
+    "aiEnabled": true
+  },
   "dependencies": {
     "@raycast/api": "^1.93.2",
     "@raycast/utils": "^1.17.0"
