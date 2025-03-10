@@ -6,7 +6,6 @@
 - Initial release of Typora Markdown Editor extension
 - "Browse Project Markdown Files" command to manage files in a specific directory
 - "Search System Markdown Files" command with pagination and folder grouping
-- "Create Markdown File" command with automatic Typora opening
 - File management features including:
   - Opening files in Typora
   - Moving files to trash

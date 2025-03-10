@@ -32,17 +32,6 @@ Find and manage Markdown files across your entire system.
 - **File management**: Open, reveal in Finder, copy path, or move to trash
 - **Relative time display**: See when files were modified (Today, Yesterday, etc.)
 
-### 3. Create Markdown File
-
-![Create File](./assets/extension-icon-3.png)
-
-Quickly create new Markdown files and open them in Typora.
-
-- **Simple creation**: Enter a title and create a new file
-- **Auto-formatting**: Files are created with a title header
-- **Automatic opening**: Newly created files open immediately in Typora
-- **Duplicate prevention**: Checks for existing files with the same name
-
 ## Installation
 
 1. Install [Raycast](https://raycast.com/)
@@ -75,14 +64,11 @@ After installation, you'll need to configure the extension:
 - `Cmd+←` - Previous page (when pagination is active)
 - `Cmd+→` - Next page (when pagination is active)
 
-### Create Markdown File Command
-- `Enter` - Create file with the entered title
 
 ## How It Works
 
 - **Browse Project**: Lists Markdown files from your configured directory using Node.js file system operations
 - **Search System**: Uses macOS `mdfind` command to search for Markdown files across your system, with a fallback to the `find` command
-- **Create Markdown File**: Creates a new file in your configured directory and opens it in Typora
 
 ## Troubleshooting
 
