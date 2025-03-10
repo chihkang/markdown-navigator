@@ -1,4 +1,4 @@
-import { List, ActionPanel, Action, showToast, Toast, getPreferenceValues } from "@raycast/api";
+import { List, ActionPanel, Action, showToast, Toast, getPreferenceValues, confirmAlert, Icon } from "@raycast/api";
 import { useState, useEffect } from "react";
 import * as fs from "fs";
 import * as path from "path";
@@ -19,7 +19,8 @@ export default function Command() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadFiles = () => {
+    setIsLoading(true);
     try {
       if (!fs.existsSync(markdownDir)) {
         fs.mkdirSync(markdownDir, { recursive: true });
@@ -56,6 +57,10 @@ export default function Command() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    loadFiles();
   }, []);
 
   useEffect(() => {
@@ -91,19 +96,72 @@ export default function Command() {
     });
   };
 
+  // Move file to trash with confirmation
+  const moveToTrash = async (file: MarkdownFile) => {
+    const options = {
+      title: "Move to Trash",
+      message: `Are you sure you want to move "${file.title}" to the trash?`,
+      primaryAction: {
+        title: "Move to Trash",
+        style: Toast.Style.Destructive,
+      },
+    };
+
+    if (await confirmAlert(options)) {
+      try {
+        // Use AppleScript to move file to trash (more reliable than Node.js methods)
+        const escapedPath = file.path.replace(/'/g, "'\\''");
+        exec(`osascript -e 'tell application "Finder" to delete POSIX file "${escapedPath}"'`, (error) => {
+          if (error) {
+            showToast({
+              style: Toast.Style.Failure,
+              title: "Failed to Move to Trash",
+              message: error.message,
+            });
+          } else {
+            showToast({
+              style: Toast.Style.Success,
+              title: "File Moved to Trash",
+              message: `"${file.title}" has been moved to the trash`,
+            });
+            // Refresh file list
+            loadFiles();
+          }
+        });
+      } catch (e) {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "Failed to Move to Trash",
+          message: e instanceof Error ? e.message : "Unknown error occurred",
+        });
+      }
+    }
+  };
+
   return (
-    <List isLoading={isLoading} searchBarPlaceholder="Search Markdown files...">
+    <List
+      isLoading={isLoading}
+      searchBarPlaceholder="Search Markdown files..."
+    >
       {files.map((file) => (
         <List.Item
           key={file.path}
+          id={file.path}
           title={file.title}
-          subtitle={undefined} // Remove subtitle
-          accessories={[{ text: file.detailedTime, tooltip: "Detailed time" }]} // Move time to accessories
+          accessories={[{ text: file.detailedTime, tooltip: "Last modified" }]}
           actions={
             <ActionPanel>
               <Action
                 title="Open in Typora"
                 onAction={() => openInTypora(file.path)}
+                icon={Icon.ArrowRight}
+              />
+              <Action
+                title="Move to Trash"
+                icon={Icon.Trash}
+                style={Action.Style.Destructive}
+                shortcut={{ modifiers: ["opt"], key: "backspace" }}
+                onAction={() => moveToTrash(file)}
               />
             </ActionPanel>
           }

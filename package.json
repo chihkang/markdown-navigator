@@ -1,8 +1,8 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "typora",
-  "title": "Open in Typora",
-  "description": "Quickly open and edit Markdown files in Typora",
+  "title": "Typora Markdown Editor",
+  "description": "Search, create, and edit Markdown files with Typora",
   "icon": "extension-icon.png",
   "author": "chihkang",
   "categories": [
@@ -12,24 +12,26 @@
   "license": "MIT",
   "commands": [
     {
-      "name": "open",
-      "title": "Search and Open Markdown Files",
-      "description": "List Markdown files and open them in Typora",
-      "mode": "view"
-    },    
-    {
-      "name": "switch-theme",
-      "title": "Switch Typora Theme",
-      "description": "Switch between available Typora themes",
-      "mode": "view"
+      "name": "browse-markdown",
+      "title": "Browse Files",
+      "description": "Search, open, and manage Markdown files in Typora",
+      "mode": "view",
+      "subtitle": "Typora"
     },    
     {
       "name": "recent-files",
-      "title": "Recent Typora Files",
-      "subtitle": "Typora",
+      "title": "Recent Files",
       "description": "List and open recently accessed Typora files",
-      "mode": "view"
-    }  
+      "mode": "view",
+      "subtitle": "Typora"
+    },
+    {
+      "name": "create-markdown",
+      "title": "Create File",
+      "description": "Create a new markdown file and open it in Typora",
+      "mode": "view",
+      "subtitle": "Typora"
+    }
   ],
   "dependencies": {
     "@raycast/api": "^1.93.2",
