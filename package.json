@@ -16,7 +16,20 @@
       "title": "Search and Open Markdown Files",
       "description": "List Markdown files and open them in Typora",
       "mode": "view"
-    }
+    },    
+    {
+      "name": "switch-theme",
+      "title": "Switch Typora Theme",
+      "description": "Switch between available Typora themes",
+      "mode": "view"
+    },    
+    {
+      "name": "recent-files",
+      "title": "Recent Typora Files",
+      "subtitle": "Typora",
+      "description": "List and open recently accessed Typora files",
+      "mode": "view"
+    }  
   ],
   "dependencies": {
     "@raycast/api": "^1.93.2",
