@@ -1,6 +1,6 @@
-# Typora Markdown Editor Changelog
+# Typora Changelog
 
-## [1.0.0] - 2025-03-10
+## [1.0.0] - {PR_MERGE_DATE}
 
 ### Added
 - Initial release of Typora Markdown Editor extension

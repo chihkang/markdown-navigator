@@ -20,8 +20,8 @@ interface MarkdownFile {
 // Get Markdown files
 async function getMarkdownFiles(): Promise<MarkdownFile[]> {
   try {
-    // Use simple mdfind command to find all .md files, but limit results
-    const { stdout } = await execAsync('mdfind -onlyin ~ "kind:markdown" | head -n 200');
+    // Use mdfind command but exclude VS Code history files
+    const { stdout } = await execAsync('mdfind -onlyin ~ "kind:markdown" | grep -v "/Library/Application Support/Code/User/History/" | head -n 200');
 
     const filePaths = stdout.split("\n").filter(Boolean);
     console.log(`Found ${filePaths.length} Markdown files`);
