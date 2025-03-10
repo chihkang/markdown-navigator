@@ -16,21 +16,24 @@
       "title": "Browse Files",
       "description": "Search, open, and manage Markdown files in Typora",
       "mode": "view",
-      "subtitle": "Typora"
+      "subtitle": "Typora",
+      "icon": "extension-icon-1.png"
     },    
     {
       "name": "recent-files",
       "title": "Recent Files",
       "description": "List and open recently accessed Typora files",
       "mode": "view",
-      "subtitle": "Typora"
+      "subtitle": "Typora",
+      "icon": "extension-icon-2.png"
     },
     {
       "name": "create-markdown",
       "title": "Create File",
       "description": "Create a new markdown file and open it in Typora",
       "mode": "view",
-      "subtitle": "Typora"
+      "subtitle": "Typora",
+      "icon": "extension-icon-3.png"
     }
   ],
   "dependencies": {
