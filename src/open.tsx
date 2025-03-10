@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { exec } from "child_process";
 
-// 從偏好設定中獲取 Markdown 文件目錄
+// Get Markdown directory from preferences
 const { markdownDir } = getPreferenceValues<{ markdownDir: string }>();
 
 interface MarkdownFile {
@@ -33,7 +33,7 @@ export default function Command() {
           const stats = fs.statSync(filePath);
           const modifiedTime = stats.mtime;
           
-          // 統一使用詳細時間格式
+          // Use unified detailed time format
           const detailedTime = `${modifiedTime.getFullYear()}/${(modifiedTime.getMonth() + 1).toString().padStart(2, '0')}/${modifiedTime.getDate().toString().padStart(2, '0')} ${modifiedTime.getHours().toString().padStart(2, '0')}:${modifiedTime.getMinutes().toString().padStart(2, '0')}`;
           
           return {
@@ -43,7 +43,7 @@ export default function Command() {
             detailedTime,
           };
         })
-        // 按照修改時間排序，最新的在前面
+        // Sort by modified time, newest first
         .sort((a, b) => b.modifiedTime.getTime() - a.modifiedTime.getTime());
       
       setFiles(markdownFiles);
@@ -51,7 +51,7 @@ export default function Command() {
       if (e instanceof Error) {
         setError(e.message);
       } else {
-        setError("讀取文件時發生未知錯誤");
+        setError("An unknown error occurred while reading files");
       }
     } finally {
       setIsLoading(false);
@@ -62,21 +62,21 @@ export default function Command() {
     if (error) {
       showToast({
         style: Toast.Style.Failure,
-        title: "錯誤",
+        title: "Error",
         message: error,
       });
     }
   }, [error]);
 
-  // 使用 AppleScript 開啟 Typora 並設定視窗大小
+  // Open file in Typora using AppleScript and set window size
   const openInTypora = (filePath: string) => {
     const appleScript = `
       tell application "Typora"
         activate
         open "${filePath}"
-        delay 0.5 -- 等待視窗載入
+        delay 0.5 -- Wait for window to load
         tell front window
-          set bounds to {100, 100, 1400, 850} -- {左邊位置, 上邊位置, 寬度, 高度}
+          set bounds to {100, 100, 1400, 850} -- {left, top, width, height}
         end tell
       end tell
     `;
@@ -84,25 +84,25 @@ export default function Command() {
       if (error) {
         showToast({
           style: Toast.Style.Failure,
-          title: "無法開啟 Typora",
-          message: "請確保 Typora 已安裝並支援 AppleScript",
+          title: "Failed to open Typora",
+          message: "Please ensure Typora is installed and supports AppleScript",
         });
       }
     });
   };
 
   return (
-    <List isLoading={isLoading} searchBarPlaceholder="搜尋 Markdown 文件...">
+    <List isLoading={isLoading} searchBarPlaceholder="Search Markdown files...">
       {files.map((file) => (
         <List.Item
           key={file.path}
           title={file.title}
-          subtitle={undefined} // 移除 subtitle
-          accessories={[{ text: file.detailedTime, tooltip: "詳細時間" }]} // 將時間移到 accessories
+          subtitle={undefined} // Remove subtitle
+          accessories={[{ text: file.detailedTime, tooltip: "Detailed time" }]} // Move time to accessories
           actions={
             <ActionPanel>
               <Action
-                title="在 Typora 中開啟"
+                title="Open in Typora"
                 onAction={() => openInTypora(file.path)}
               />
             </ActionPanel>

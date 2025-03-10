@@ -1,8 +1,8 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "typora",
-  "title": "Typora",
-  "description": "Quickyly open and manage docs with Typora.",
+  "title": "Open in Typora",
+  "description": "Quickly open and edit Markdown files in Typora",
   "icon": "extension-icon.png",
   "author": "chihkang",
   "categories": [
@@ -13,8 +13,8 @@
   "commands": [
     {
       "name": "open",
-      "title": "Open",
-      "description": "Open and manage Markdown files in Typora",
+      "title": "Search and Open Markdown Files",
+      "description": "List Markdown files and open them in Typora",
       "mode": "view"
     }
   ],
@@ -39,13 +39,12 @@
     "publish": "npx @raycast/api@latest publish"
   },
   "preferences": [
-    {
+    {      
       "name": "markdownDir",
+      "title": "Markdown Files Directory",
+      "description": "Specify the directory path for storing Markdown files",
       "type": "directory",
-      "required": true,
-      "title": "Markdown 文件目錄",
-      "description": "存放 Markdown 文件的目錄",
-      "default": "~/Documents/Markdown"
+      "required": true
     }
   ]
 }
