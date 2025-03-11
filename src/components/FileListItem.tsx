@@ -1,15 +1,20 @@
-// src/components/FileListItem.tsx
-import { List, ActionPanel, Action, Icon, Clipboard, showToast, Toast, confirmAlert, Alert, useNavigation } from "@raycast/api";
-import path from "path";
-import { exec } from "child_process";
-import { promisify } from "util";
+// components/FileListItem.tsx
+import {
+  List,
+  ActionPanel,
+  Action,
+  Alert,
+  Icon,
+  Color,
+  confirmAlert,
+  showToast,
+  Toast,
+  openCommandPreferences,
+} from "@raycast/api";
 import { MarkdownFile } from "../types";
-import { formatRelativeDate } from "../utils/formatters";
-import { filterDisplayTags } from "../utils/tagOperations";
 import { openWithTypora, moveToTrash } from "../utils/fileOperations";
-import { CreateFileForm } from "./CreateFileForm";
-
-const execAsync = promisify(exec);
+import path from "path";
+import fs from "fs";
 
 interface FileListItemProps {
   file: MarkdownFile;
@@ -19,158 +24,205 @@ interface FileListItemProps {
   totalPages: number;
   setCurrentPage: (page: number) => void;
   markdownDir: string;
-  setCurrentFolder?: (folder: string) => void; // Change to setCurrentFolder function
+  loadMoreFiles: () => void;
+  showCreateFileForm: () => void; // Add this prop for creating files
 }
 
-export function FileListItem({ 
-  file, 
-  showColorTags, 
-  revalidate, 
-  currentPage, 
-  totalPages, 
+export function FileListItem({
+  file,
+  showColorTags,
+  revalidate,
+  currentPage,
+  totalPages,
   setCurrentPage,
   markdownDir,
-  setCurrentFolder
+  loadMoreFiles,
+  showCreateFileForm, // Add this prop
 }: FileListItemProps) {
-  const { push } = useNavigation();
+  // Format the date
+  const formatDate = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const day = 24 * 60 * 60 * 1000;
 
-  // Handle move to trash
-  const handleMoveToTrash = async () => {
-    const options = {
-      title: "Move to Trash",
-      message: `Are you sure you want to move "${file.name}" to trash?`,
-      primaryAction: {
-        title: "Move to Trash",
-        style: Alert.ActionStyle.Destructive,
-      },
-    };
-
-    if (await confirmAlert(options)) {
-      const success = await moveToTrash(file);
-      if (success) {
-        revalidate();
-      }
-    }
-  };
-
-  // Show in Finder
-  const revealInFinder = async () => {
-    try {
-      await execAsync(`open -R "${file.path}"`);
-    } catch (err) {
-      showToast({
-        style: Toast.Style.Failure,
-        title: "Failed to Show in Finder",
-        message: String(err),
+    if (diff < day) {
+      return `Today, ${date.toLocaleTimeString()}`;
+    } else if (diff < 2 * day) {
+      return `Yesterday, ${date.toLocaleTimeString()}`;
+    } else {
+      return date.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       });
     }
   };
 
-  // Copy path
-  const copyPath = () => {
-    Clipboard.copy(file.path);
-    showToast({
-      style: Toast.Style.Success,
-      title: "Path Copied to Clipboard",
-    });
-  };
-
-  // Navigate to create file form with current folder context
-  const showCreateFileForm = () => {
-    // Update current folder before navigating
-    if (setCurrentFolder) {
-      setCurrentFolder(file.folder);
+  // Confirm and delete file
+  const confirmDelete = async () => {
+    if (
+      await confirmAlert({
+        title: "Delete this file?",
+        message: `Are you sure you want to delete "${file.name}"?`,
+        primaryAction: {
+          title: "Delete",
+          style: Alert.ActionStyle.Destructive,
+        },
+      })
+    ) {
+      try {
+        fs.unlinkSync(file.path);
+        showToast({
+          style: Toast.Style.Success,
+          title: "File deleted",
+          message: `${file.name} has been deleted`,
+        });
+        revalidate();
+      } catch (error) {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "Error deleting file",
+          message: String(error),
+        });
+      }
     }
-    push(<CreateFileForm markdownDir={markdownDir} currentFolder={file.folder} onFileCreated={revalidate} />);
   };
 
-  // Filter displayed tags
-  const displayTags = filterDisplayTags(file.tags, showColorTags);
-  const tagsSubtitle = displayTags.length > 0 ? displayTags.map(tag => `#${tag}`).join(" ") : undefined;
+  // Get the relative path from the markdownDir
+  const getRelativePath = () => {
+    if (!markdownDir) return file.path;
+    try {
+      return path.relative(markdownDir, file.path);
+    } catch (error) {
+      return file.path;
+    }
+  };
+
+  // Pagination actions
+  const paginationActions = (
+    <>
+      {currentPage > 0 && (
+        <Action
+          title="Previous Page"
+          icon={Icon.ArrowLeft}
+          shortcut={{ modifiers: ["cmd"], key: "arrowLeft" }}
+          onAction={() => setCurrentPage(currentPage - 1)}
+        />
+      )}
+      {currentPage < totalPages - 1 && (
+        <Action
+          title="Next Page"
+          icon={Icon.ArrowRight}
+          shortcut={{ modifiers: ["cmd"], key: "arrowRight" }}
+          onAction={() => setCurrentPage(currentPage + 1)}
+        />
+      )}
+    </>
+  );
 
   return (
     <List.Item
-      key={file.path}
+      id={file.path}
       title={file.name}
-      subtitle={tagsSubtitle}
+      subtitle={getRelativePath()}
       accessories={[
         {
-          text: formatRelativeDate(file.lastModified),
-          tooltip: file.lastModified.toLocaleString("en-TW"),
+          text: formatDate(file.lastModified),
+          tooltip: `Last modified: ${file.lastModified.toLocaleString()}`,
         },
+        ...file.tags.map((tag) => ({
+          tag: {
+            value: tag,
+            color: showColorTags
+              ? tag.toLowerCase().includes("important")
+                ? Color.Red
+                : tag.toLowerCase().includes("draft")
+                ? Color.Yellow
+                : tag.toLowerCase().includes("complete")
+                ? Color.Green
+                : tag.toLowerCase().includes("review")
+                ? Color.Orange
+                : tag.toLowerCase().includes("archive")
+                ? Color.Blue
+                : undefined
+              : undefined,
+          },
+        })),
       ]}
       actions={
         <ActionPanel>
           <ActionPanel.Section>
             <Action
-              title="Open in Typora"
-              icon={Icon.TextDocument}
+              title="Open with Typora"
+              icon={Icon.BlankDocument}
+              onAction={() => openWithTypora(file.path)}
+            />
+            <Action
+              title="Open in Default App"
+              icon={Icon.Document}
+              shortcut={{ modifiers: ["cmd"], key: "o" }}
               onAction={() => {
-                // Update current folder when opening a file
-                if (setCurrentFolder) {
-                  setCurrentFolder(file.folder);
-                }
-                openWithTypora(file.path);
+                const { exec } = require("child_process");
+                exec(`open "${file.path}"`);
               }}
             />
-            <Action
-              title="Show in Finder"
-              icon={Icon.Finder}
-              shortcut={{ modifiers: ["cmd"], key: "f" }}
-              onAction={revealInFinder}
-            />
-            <Action
+            <Action.OpenWith path={file.path} shortcut={{ modifiers: ["cmd", "shift"], key: "o" }} />
+            <Action.ShowInFinder path={file.path} shortcut={{ modifiers: ["cmd"], key: "f" }} />
+            <Action.CopyToClipboard
               title="Copy Path"
-              icon={Icon.Clipboard}
-              shortcut={{ modifiers: ["cmd"], key: "c" }}
-              onAction={copyPath}
+              content={file.path}
+              shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
             />
           </ActionPanel.Section>
 
           <ActionPanel.Section>
             <Action
-              title="New Markdown File"
+              title="Create a new Markdown file"
               icon={Icon.NewDocument}
               shortcut={{ modifiers: ["cmd"], key: "n" }}
               onAction={showCreateFileForm}
             />
-            <Action
-              title="Move to Trash"
-              icon={Icon.Trash}
-              style={Action.Style.Destructive}
-              shortcut={{ modifiers: ["opt"], key: "backspace" }}
-              onAction={handleMoveToTrash}
-            />
-          </ActionPanel.Section>
-
-          <ActionPanel.Section>
             <Action
               title="Refresh List"
               icon={Icon.RotateClockwise}
               shortcut={{ modifiers: ["cmd"], key: "r" }}
               onAction={revalidate}
             />
-            {totalPages > 1 && (
-              <>
-                {currentPage > 0 && (
-                  <Action
-                    title="Previous Page"
-                    icon={Icon.ArrowLeft}
-                    shortcut={{ modifiers: ["cmd"], key: "arrowLeft" }}
-                    onAction={() => setCurrentPage(currentPage - 1)}
-                  />
-                )}
-                {currentPage < totalPages - 1 && (
-                  <Action
-                    title="Next Page"
-                    icon={Icon.ArrowRight}
-                    shortcut={{ modifiers: ["cmd"], key: "arrowRight" }}
-                    onAction={() => setCurrentPage(currentPage + 1)}
-                  />
-                )}
-              </>
-            )}
+            <Action
+              title="Load More Files"
+              icon={Icon.Plus}
+              shortcut={{ modifiers: ["cmd", "shift"], key: "m" }}
+              onAction={loadMoreFiles}
+            />
           </ActionPanel.Section>
+
+          <ActionPanel.Section>
+            <Action
+              title="Move to Trash"
+              icon={Icon.Trash}
+              style={Action.Style.Destructive}
+              shortcut={{ modifiers: ["ctrl"], key: "x" }}
+              onAction={() => moveToTrash(file)}
+            />
+            <Action
+              title="Delete File"
+              icon={Icon.DeleteDocument}
+              style={Action.Style.Destructive}
+              shortcut={{ modifiers: ["ctrl", "cmd"], key: "x" }}
+              onAction={confirmDelete}
+            />
+          </ActionPanel.Section>
+
+          <ActionPanel.Section>
+            <Action
+              title="Open Extension Preferences"
+              icon={Icon.Gear}
+              shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
+              onAction={openCommandPreferences}
+            />
+          </ActionPanel.Section>
+
+          <ActionPanel.Section>{paginationActions}</ActionPanel.Section>
         </ActionPanel>
       }
     />

@@ -5,20 +5,46 @@ import fs from "fs";
 import path from "path";
 import { MarkdownFile } from "../types";
 import { extractTags } from "./tagOperations";
-import { markdownDir } from "../search-system-markdown"; // 假設從主檔案導入
+import { markdownDir } from "../search-system-markdown";
+import { LocalStorage } from "@raycast/api";
 
 const execAsync = promisify(exec);
+const CACHE_KEY = "markdownFilesCache";
+const CACHE_EXPIRY = 3600000; // 1 小時
 
-// Get the Markdown file
-export async function getMarkdownFiles(): Promise<MarkdownFile[]> {
+// Get the Markdown file with optional limit
+export async function getMarkdownFiles(limit?: number): Promise<MarkdownFile[]> {
   try {
-    // Use the mdfind command but exclude VS Code history files
-    const { stdout } = await execAsync(
-      `mdfind -onlyin ~ "kind:markdown" | grep -v "/Library/Application Support/Code/User/History/" | grep -v "node_modules"`
+    if (!markdownDir || !fs.existsSync(markdownDir)) {
+      throw new Error("Markdown directory is not set or invalid");
+    }
+
+    const cached = await LocalStorage.getItem<string>(CACHE_KEY);
+    const now = Date.now();
+
+    if (cached && !limit) {
+      const { files, timestamp } = JSON.parse(cached);
+      if (now - timestamp < CACHE_EXPIRY) {
+        console.log("Using cached files");
+        return files.map((f: any) => ({
+          ...f,
+          lastModified: new Date(f.lastModified),
+        }));
+      }
+    }
+
+    // Use the mdfind command to search within markdownDir
+    let { stdout } = await execAsync(
+      `mdfind -onlyin "${markdownDir}" "kind:markdown" | grep -v "/Library/Application Support/Code/User/History/" | grep -v "node_modules"`
     );
 
-    const filePaths = stdout.split("\n").filter(Boolean);
-    console.log(`Found ${filePaths.length} Markdown files using mdfind`);
+    let filePaths = stdout.split("\n").filter(Boolean);
+    console.log(`Found ${filePaths.length} Markdown files using mdfind in ${markdownDir}`);
+
+    if (limit && filePaths.length > limit) {
+      filePaths = filePaths.slice(0, limit);
+      console.log(`Limited to ${limit} files`);
+    }
 
     const files: MarkdownFile[] = [];
 
@@ -27,7 +53,7 @@ export async function getMarkdownFiles(): Promise<MarkdownFile[]> {
         if (fs.existsSync(filePath)) {
           const stats = fs.statSync(filePath);
           const dirname = path.dirname(filePath);
-          const folder = path.relative(markdownDir, dirname) || path.basename(dirname); // 相對於 markdownDir 的路徑
+          const folder = path.relative(markdownDir, dirname) || path.basename(dirname);
 
           files.push({
             path: filePath,
@@ -46,7 +72,11 @@ export async function getMarkdownFiles(): Promise<MarkdownFile[]> {
     }
 
     // Sort by last modified time, with the latest one first
-    return files.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
+    const sortedFiles = files.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
+    if (!limit) {
+      await LocalStorage.setItem(CACHE_KEY, JSON.stringify({ files: sortedFiles, timestamp: now }));
+    }
+    return sortedFiles;
   } catch (error) {
     console.error("Error while searching for Markdown files with mdfind:", error);
 
@@ -54,27 +84,36 @@ export async function getMarkdownFiles(): Promise<MarkdownFile[]> {
     try {
       console.log("Falling back to find command");
       const { stdout } = await execAsync(
-        `find ~ -name "*.md" -type f -not -path "*/\\.*" -not -path "*/node_modules/*" -not -path "*/Library/*"`
+        `find "${markdownDir}" -name "*.md" -type f -not -path "*/\\.*" -not -path "*/node_modules/*" -not -path "*/Library/*"`
       );
 
-      const filePaths = stdout.split("\n").filter(Boolean);
-      console.log(`Found ${filePaths.length} Markdown files using find`);
+      let filePaths = stdout.split("\n").filter(Boolean);
+      console.log(`Found ${filePaths.length} Markdown files using find in ${markdownDir}`);
 
-      return filePaths
-        .map((filePath) => {
-          const stats = fs.statSync(filePath);
-          const dirname = path.dirname(filePath);
-          const folder = path.relative(markdownDir, dirname) || path.basename(dirname);
+      if (limit && filePaths.length > limit) {
+        filePaths = filePaths.slice(0, limit);
+        console.log(`Limited to ${limit} files`);
+      }
 
-          return {
-            path: filePath,
-            name: path.basename(filePath),
-            lastModified: stats.mtime,
-            folder: folder,
-            tags: extractTags(filePath),
-          };
-        })
-        .sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
+      const files = filePaths.map((filePath) => {
+        const stats = fs.statSync(filePath);
+        const dirname = path.dirname(filePath);
+        const folder = path.relative(markdownDir, dirname) || path.basename(dirname);
+
+        return {
+          path: filePath,
+          name: path.basename(filePath),
+          lastModified: stats.mtime,
+          folder: folder,
+          tags: extractTags(filePath),
+        };
+      });
+
+      const sortedFiles = files.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
+      if (!limit) {
+        await LocalStorage.setItem(CACHE_KEY, JSON.stringify({ files: sortedFiles, timestamp: now }));
+      }
+      return sortedFiles;
     } catch (fallbackError) {
       console.error("Alternative method also failed:", fallbackError);
       showToast({
@@ -174,7 +213,7 @@ export async function moveToTrash(file: MarkdownFile) {
       title: "The file has been moved to the trash",
       message: `"${file.name}" has been moved to the trash`,
     });
-    
+
     return true;
   } catch (error) {
     console.error("Error moving file to trash:", error);
@@ -183,7 +222,7 @@ export async function moveToTrash(file: MarkdownFile) {
       title: "Cannot move to trash",
       message: String(error),
     });
-    
+
     return false;
   }
 }
