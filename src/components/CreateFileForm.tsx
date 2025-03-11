@@ -1,7 +1,7 @@
 // src/components/CreateFileForm.tsx
 import { Form, ActionPanel, Action, showToast, Toast, useNavigation } from "@raycast/api";
 import { useState } from "react";
-import createMarkdown from "../tools/create-markdown";
+import createMarkdown from "./create-markdown";
 import path from "path";
 import { homedir } from "os";
 
