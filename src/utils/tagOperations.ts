@@ -1,29 +1,33 @@
-// src/utils/tagOperations.ts
 import fs from "fs";
 
-// 檢查是否為顏色代碼標籤
+// Check if it is a color code label
 export const isColorTag = (tag: string): boolean => {
-  // 檢查是否為 3 或 6 位十六進制顏色代碼
+  // Check if it is a 3 or 6 digit hexadecimal color code
   return /^[0-9A-Fa-f]{3}$|^[0-9A-Fa-f]{6}$/.test(tag);
 };
 
-// 從文件中提取標籤的函數
+// Check if tag consists only of numbers
+export const isNumericTag = (tag: string): boolean => {
+  return /^\d+$/.test(tag);
+};
+
+// Function to extract tags from the file
 export const extractTags = (filePath: string): string[] => {
   try {
     const content = fs.readFileSync(filePath, "utf8");
     const tags: string[] = [];
     
-    // 尋找內聯標籤 #tag
-    const inlineTagsMatch = content.match(/#([a-zA-Z0-9_\u4e00-\u9fa5-]+)/g); // 支持英文和中文標籤
+    // Find inline tags #tag
+    const inlineTagsMatch = content.match(/#([a-zA-Z0-9_\u4e00-\u9fa5-]+)/g); // Supports English and Chinese tags
     if (inlineTagsMatch) {
       const filteredTags = inlineTagsMatch
         .map((t) => t.substring(1))
-        .filter((tag) => !isColorTag(tag)); // 過濾掉顏色代碼標籤
+        .filter((tag) => !isColorTag(tag) && !isNumericTag(tag)); // Filter out color code tags and numeric tags
       
       tags.push(...filteredTags);
     }
     
-    // 尋找 YAML frontmatter 中的標籤
+    // Find the tag in the YAML frontmatter
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
     if (frontmatterMatch) {
       const frontmatter = frontmatterMatch[1];
@@ -33,12 +37,12 @@ export const extractTags = (filePath: string): string[] => {
         const frontmatterTags = tagList
           .split(/,\s*/)
           .map(t => t.trim().replace(/['"]/g, ''))
-          .filter(Boolean);
+          .filter(tag => Boolean(tag) && !isNumericTag(tag));
         tags.push(...frontmatterTags);
       }
     }
     
-    // 去重並返回
+    // Remove duplicates and return
     return [...new Set(tags)].filter(Boolean);
   } catch (error) {
     console.error(`Error extracting tags from ${filePath}:`, error);
@@ -46,13 +50,13 @@ export const extractTags = (filePath: string): string[] => {
   }
 };
 
-// 獲取所有唯一標籤
+// Get all unique tags
 export const getAllUniqueTags = (files: { tags: string[] }[], showColorTags: boolean = false): string[] => {
   const allTags = new Set<string>();
   files.forEach((file) => {
     file.tags.forEach((tag) => {
-      // 如果不顯示顏色代碼標籤，則過濾掉
-      if (showColorTags || !isColorTag(tag)) {
+      // Filter out color tags and numeric tags
+      if ((showColorTags || !isColorTag(tag)) && !isNumericTag(tag)) {
         allTags.add(tag);
       }
     });
@@ -60,7 +64,7 @@ export const getAllUniqueTags = (files: { tags: string[] }[], showColorTags: boo
   return Array.from(allTags).sort();
 };
 
-// 過濾顯示的標籤
+// Filter the displayed tags
 export const filterDisplayTags = (tags: string[], showColorTags: boolean = false): string[] => {
-  return showColorTags ? tags : tags.filter(tag => !isColorTag(tag));
+  return tags.filter(tag => (showColorTags || !isColorTag(tag)) && !isNumericTag(tag));
 };

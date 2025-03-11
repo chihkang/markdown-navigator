@@ -18,7 +18,7 @@ interface FileListItemProps {
   currentPage: number;
   totalPages: number;
   setCurrentPage: (page: number) => void;
-  markdownDir: string; // 添加 markdownDir 參數
+  markdownDir: string; // Add markdownDir parameter
 }
 
 export function FileListItem({ 
@@ -32,13 +32,13 @@ export function FileListItem({
 }: FileListItemProps) {
   const { push } = useNavigation();
 
-  // 處理移至垃圾桶
+  // Handle move to trash
   const handleMoveToTrash = async () => {
     const options = {
-      title: "移至垃圾桶",
-      message: `確定要將 "${file.name}" 移至垃圾桶嗎？`,
+      title: "Move to Trash",
+      message: `Are you sure you want to move "${file.name}" to trash?`,
       primaryAction: {
-        title: "移至垃圾桶",
+        title: "Move to Trash",
         style: Alert.ActionStyle.Destructive,
       },
     };
@@ -51,34 +51,34 @@ export function FileListItem({
     }
   };
 
-  // 在 Finder 中顯示
+  // Show in Finder
   const revealInFinder = async () => {
     try {
       await execAsync(`open -R "${file.path}"`);
     } catch (err) {
       showToast({
         style: Toast.Style.Failure,
-        title: "無法在 Finder 中顯示",
+        title: "Failed to Show in Finder",
         message: String(err),
       });
     }
   };
 
-  // 複製路徑
+  // Copy path
   const copyPath = () => {
     Clipboard.copy(file.path);
     showToast({
       style: Toast.Style.Success,
-      title: "路徑已複製到剪貼板",
+      title: "Path Copied to Clipboard",
     });
   };
 
-  // 導航到創建文件表單
+  // Navigate to create file form
   const showCreateFileForm = () => {
     push(<CreateFileForm markdownDir={markdownDir} onFileCreated={revalidate} />);
   };
 
-  // 過濾顯示的標籤
+  // Filter displayed tags
   const displayTags = filterDisplayTags(file.tags, showColorTags);
   const tagsSubtitle = displayTags.length > 0 ? displayTags.map(tag => `#${tag}`).join(" ") : undefined;
 
@@ -97,18 +97,18 @@ export function FileListItem({
         <ActionPanel>
           <ActionPanel.Section>
             <Action
-              title="在 Typora 中打開"
+              title="Open in Typora"
               icon={Icon.TextDocument}
               onAction={() => openWithTypora(file.path)}
             />
             <Action
-              title="在 Finder 中顯示"
+              title="Show in Finder"
               icon={Icon.Finder}
               shortcut={{ modifiers: ["cmd"], key: "f" }}
               onAction={revealInFinder}
             />
             <Action
-              title="複製路徑"
+              title="Copy Path"
               icon={Icon.Clipboard}
               shortcut={{ modifiers: ["cmd"], key: "c" }}
               onAction={copyPath}
@@ -117,13 +117,13 @@ export function FileListItem({
 
           <ActionPanel.Section>
             <Action
-              title="新建 Markdown 文件"
+              title="New Markdown File"
               icon={Icon.NewDocument}
               shortcut={{ modifiers: ["cmd"], key: "n" }}
               onAction={showCreateFileForm}
             />
             <Action
-              title="移至垃圾桶"
+              title="Move to Trash"
               icon={Icon.Trash}
               style={Action.Style.Destructive}
               shortcut={{ modifiers: ["opt"], key: "backspace" }}
@@ -133,7 +133,7 @@ export function FileListItem({
 
           <ActionPanel.Section>
             <Action
-              title="刷新列表"
+              title="Refresh List"
               icon={Icon.RotateClockwise}
               shortcut={{ modifiers: ["cmd"], key: "r" }}
               onAction={revalidate}
@@ -142,7 +142,7 @@ export function FileListItem({
               <>
                 {currentPage > 0 && (
                   <Action
-                    title="上一頁"
+                    title="Previous Page"
                     icon={Icon.ArrowLeft}
                     shortcut={{ modifiers: ["cmd"], key: "arrowLeft" }}
                     onAction={() => setCurrentPage(currentPage - 1)}
@@ -150,7 +150,7 @@ export function FileListItem({
                 )}
                 {currentPage < totalPages - 1 && (
                   <Action
-                    title="下一頁"
+                    title="Next Page"
                     icon={Icon.ArrowRight}
                     shortcut={{ modifiers: ["cmd"], key: "arrowRight" }}
                     onAction={() => setCurrentPage(currentPage + 1)}

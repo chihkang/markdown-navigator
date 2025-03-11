@@ -18,9 +18,9 @@ import { CreateFileForm } from "./components/CreateFileForm";
 import { FileListItem } from "./components/FileListItem";
 import { PaginationSection } from "./components/PaginationSection";
 
-// 從偏好設置獲取 Markdown 目錄
+// Get the Markdown table of contents from preferences
 const { markdownDir } = getPreferenceValues<{ markdownDir: string }>();
-const ITEMS_PER_PAGE = 20; // 每頁項目數
+const ITEMS_PER_PAGE = 20; // Number of items per page
 
 export default function Command() {
   const { push } = useNavigation();
@@ -29,19 +29,19 @@ export default function Command() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showColorTags, setShowColorTags] = useState(false);
 
-  // 獲取 Markdown 文件
+  // Get the Markdown files
   const { data, isLoading, error, revalidate } = usePromise(getMarkdownFiles);
 
-  // 處理錯誤
+  // Handling Errors
   if (error) {
     showToast({
       style: Toast.Style.Failure,
-      title: "加載 Markdown 文件失敗",
+      title: "Loading Markdown files failed",
       message: String(error),
     });
   }
 
-  // 過濾和分頁數據
+  // Filtering and paging data
   const filteredData = data
     ? data.filter(
         (file) =>
@@ -54,38 +54,38 @@ export default function Command() {
   const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
   const paginatedData = filteredData.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE);
 
-  // 計算當前頁面顯示範圍
+  // Calculate the current page display range
   const startItem = currentPage * ITEMS_PER_PAGE + 1;
   const endItem = Math.min((currentPage + 1) * ITEMS_PER_PAGE, filteredData.length);
   const pageInfoText =
-    filteredData.length > 0 ? `顯示 ${startItem}-${endItem}，共 ${filteredData.length} 個文件` : "沒有找到文件";
+    filteredData.length > 0 ? `Showing ${startItem}-${endItem}, ${filteredData.length} files in total` : "File not found";
 
-  // 導航到創建文件表單
+  // Navigate to the Create File form
   const showCreateFileForm = () => {
     push(<CreateFileForm markdownDir={markdownDir} onFileCreated={revalidate} />);
   };
 
-  // 獲取所有標籤
+  // Get all tags
   const allTags = data ? getAllUniqueTags(data, showColorTags) : [];
 
   return (
     <List
       isLoading={isLoading}
-      searchBarPlaceholder="搜尋文件名或資料夾..."
+      searchBarPlaceholder="Search file name or folder..."
       onSearchTextChange={(text) => {
         setSearchText(text);
-        setCurrentPage(0); // 搜尋時重置到第一頁
+        setCurrentPage(0); // Reset to first page when searching
       }}
       searchText={searchText}
-      navigationTitle={`Markdown 文件 (${filteredData.length} 個文件)`}
+      navigationTitle={`Markdown files (${filteredData.length} items)`}
       searchBarAccessory={
         allTags.length > 0 ? (
           <List.Dropdown
-            tooltip="按標籤過濾"
+            tooltip="Filter by Tags"
             value={selectedTag || ""}
             onChange={setSelectedTag}
           >
-            <List.Dropdown.Item title="所有標籤" value="" />
+            <List.Dropdown.Item title="All tags" value="" />
             {allTags.map((tag) => (
               <List.Dropdown.Item key={tag} title={`#${tag}`} value={tag} />
             ))}
@@ -95,13 +95,13 @@ export default function Command() {
       actions={
         <ActionPanel>
           <Action
-            title="新建 Markdown 文件"
+            title="Create a new Markdown file"
             icon={Icon.NewDocument}
             shortcut={{ modifiers: ["cmd"], key: "n" }}
             onAction={showCreateFileForm}
           />
           <Action
-            title={showColorTags ? "隱藏顏色標籤" : "顯示顏色標籤"}
+            title={showColorTags ? "Hide Color Labels" : "Show Color Labels"}
             icon={showColorTags ? Icon.EyeDisabled : Icon.Eye}
             shortcut={{ modifiers: ["cmd", "shift"], key: "t" }}
             onAction={() => setShowColorTags(!showColorTags)}
@@ -111,7 +111,7 @@ export default function Command() {
     >
       {filteredData.length > 0 ? (
         <>
-          {/* 分頁導航 */}
+          {/* Page navigation */}
           {totalPages > 1 && (
             <PaginationSection
               currentPage={currentPage}
@@ -122,7 +122,7 @@ export default function Command() {
             />
           )}
 
-          {/* 按資料夾分組 */}
+          {/* Group by folder */}
           {Object.entries(
             paginatedData.reduce<Record<string, MarkdownFile[]>>((groups, file) => {
               const key = file.folder;
@@ -151,30 +151,30 @@ export default function Command() {
         </>
       ) : (
         <List.EmptyView
-          title={isLoading ? "載入中..." : selectedTag ? `沒有找到帶有標籤 #${selectedTag} 的文件` : "沒有找到 Markdown 文件"}
+          title={isLoading ? "loading..." : selectedTag ? `No files with the tag #${selectedTag}were found` : "Markdown file not found Markdown"}
           description={
             isLoading
-              ? "請稍候，正在搜尋 Markdown 文件"
+              ? "Try choosing a different tag"
               : selectedTag
-              ? "嘗試選擇不同的標籤"
-              : "創建一個新的 Markdown 文件開始使用"
+              ? "Try choosing a different tag"
+              : "Create a new Markdown file to get started"
           }
           actions={
             <ActionPanel>
               <Action
-                title="新建 Markdown 文件"
+                title="Create a new Markdown file"
                 icon={Icon.NewDocument}
                 onAction={showCreateFileForm}
               />
               <Action
-                title="刷新列表"
+                title="Refresh List"
                 icon={Icon.RotateClockwise}
                 onAction={revalidate}
               />
               {selectedTag && (
                 <Action
-                  title="清除標籤過濾"
-                  icon={Icon.XmarkCircle}
+                  title="Clear Tag Filter"
+                  icon={Icon.XMarkCircle}
                   onAction={() => setSelectedTag(null)}
                 />
               )}

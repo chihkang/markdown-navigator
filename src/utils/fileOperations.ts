@@ -9,14 +9,14 @@ import { extractTags } from "./tagOperations";
 
 const execAsync = promisify(exec);
 
-// 獲取 Markdown 文件
+// Get the Markdown file
 export async function getMarkdownFiles(): Promise<MarkdownFile[]> {
   try {
-    // 使用 mdfind 命令但排除 VS Code 歷史文件
+    // Use the mdfind command but exclude VS Code history files
     const { stdout } = await execAsync('mdfind -onlyin ~ "kind:markdown" | grep -v "/Library/Application Support/Code/User/History/" | grep -v "node_modules" | head -n 200');
 
     const filePaths = stdout.split("\n").filter(Boolean);
-    console.log(`找到 ${filePaths.length} 個 Markdown 文件`);
+    console.log(`Found ${filePaths.length} Markdown files`);
 
     const files: MarkdownFile[] = [];
 
@@ -36,22 +36,22 @@ export async function getMarkdownFiles(): Promise<MarkdownFile[]> {
           });
         }
       } catch (error) {
-        console.error(`處理文件 ${filePath} 時出錯:`, error);
+        console.error(`Error processing file ${filePath}:`, error);
       }
     }
 
-    // 按最後修改時間排序，最新的在前
+    // Sort by last modified time, with the latest one first
     return files.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
   } catch (error) {
-    console.error("查找 Markdown 文件時出錯:", error);
+    console.error("Error while searching for Markdown file:", error);
 
-    // 如果 mdfind 失敗，嘗試使用 find 命令
+    // If mdfind fails, try using the find command
     try {
-      console.log("嘗試使用 find 命令作為備用方法");
+      console.log("Try using find command as a fallback");
       const { stdout } = await execAsync('find ~ -name "*.md" -type f -not -path "*/\\.*" | head -n 200');
 
       const filePaths = stdout.split("\n").filter(Boolean);
-      console.log(`備用方法找到 ${filePaths.length} 個 Markdown 文件`);
+      console.log(`Alternative method found ${filePaths.length} Markdown files`);
 
       return filePaths
         .map((filePath) => {
@@ -69,41 +69,41 @@ export async function getMarkdownFiles(): Promise<MarkdownFile[]> {
         })
         .sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
     } catch (fallbackError) {
-      console.error("備用方法也失敗:", fallbackError);
+      console.error("Alternative method also failed:", fallbackError);
       return [];
     }
   }
 }
 
-// 在 Typora 中打開文件
+// Open the file in Typora
 export async function openWithTypora(filePath: string) {
   try {
-    console.log(`打開文件: ${filePath}`);
+    console.log(`Open file: ${filePath}`);
     await execAsync(`open -a Typora "${filePath}"`);
 
     showToast({
       style: Toast.Style.Success,
-      title: "文件已在 Typora 中打開",
+      title: "The file has been opened in Typora",
     });
   } catch (error) {
-    console.error("使用 Typora 打開文件時出錯:", error);
+    console.error("Error opening file using Typora:", error);
     showToast({
       style: Toast.Style.Failure,
-      title: "無法打開文件",
+      title: "Unable to open file",
       message: String(error),
     });
   }
 }
 
-// 在 Typora 中打開文件並設置窗口大小
+// Open the file in Typora and set the window size
 export const openInTyporaWithSize = (filePath: string) => {
   const appleScript = `
     tell application "Typora"
       activate
       open "${filePath}"
-      delay 0.5 -- 等待窗口加載
+      delay 0.5 -- wait for the window to load
       tell front window
-        set bounds to {100, 100, 1400, 850} -- {左, 上, 寬, 高}
+        set bounds to {100, 100, 1400, 850} -- {left, top, width, height}
       end tell
     end tell
   `;
@@ -111,64 +111,64 @@ export const openInTyporaWithSize = (filePath: string) => {
     if (error) {
       showToast({
         style: Toast.Style.Failure,
-        title: "無法打開 Typora",
-        message: "請確保 Typora 已安裝並支持 AppleScript",
+        title: "Cannot open Typora",
+        message: "Please make sure Typora is installed and supports AppleScript",
       });
     }
   });
 };
 
-// 創建新的 Markdown 文件
+// Create a new Markdown file
 export const createMarkdownFile = (filePath: string, content: string): boolean => {
   try {
-    // 確保目錄存在
+    // Make sure the directory exists
     const dirPath = path.dirname(filePath);
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
     }
 
-    // 檢查文件是否已存在
+    // Check if the file already exists
     if (fs.existsSync(filePath)) {
       showToast({
         style: Toast.Style.Failure,
-        title: "文件已存在",
-        message: `${path.basename(filePath)} 已存在於目錄中`,
+        title: "File already exists",
+        message: `${path.basename(filePath)} already exists in the directory`,
       });
       return false;
     }
 
-    // 寫入文件
+    // Write to file
     fs.writeFileSync(filePath, content);
     return true;
   } catch (error) {
     showToast({
       style: Toast.Style.Failure,
-      title: "創建文件時出錯",
-      message: error instanceof Error ? error.message : "發生未知錯誤",
+      title: "Error creating file",
+      message: error instanceof Error ? error.message : "An unknown error occurred",
     });
     return false;
   }
 };
 
-// 將文件移到垃圾桶
+// Move the file to the trash
 export async function moveToTrash(file: MarkdownFile) {
   try {
-    // 使用 AppleScript 將文件移到垃圾桶
+    // Use AppleScript to move files to the Trash
     const escapedPath = file.path.replace(/'/g, "'\\''");
     await execAsync(`osascript -e 'tell application "Finder" to delete POSIX file "${escapedPath}"'`);
 
     showToast({
       style: Toast.Style.Success,
-      title: "文件已移至垃圾桶",
-      message: `"${file.name}" 已被移至垃圾桶`,
+      title: "The file has been moved to the trash",
+      message: `"${file.name}" has been moved to the trash`,
     });
     
     return true;
   } catch (error) {
-    console.error("將文件移至垃圾桶時出錯:", error);
+    console.error("Error moving file to trash:", error);
     showToast({
       style: Toast.Style.Failure,
-      title: "無法移至垃圾桶",
+      title: "Cannot move to trash",
       message: String(error),
     });
     

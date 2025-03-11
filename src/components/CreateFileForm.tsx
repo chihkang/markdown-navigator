@@ -14,57 +14,57 @@ export function CreateFileForm({ markdownDir, onFileCreated }: CreateFileFormPro
   const { pop } = useNavigation();
   const [isCreating, setIsCreating] = useState(false);
 
-  // 創建文件並在 Typora 中打開
+  // Create file and open in Typora
   const createAndOpenFile = async (values: CreateFileFormValues) => {
     try {
       setIsCreating(true);
 
-      // 確保標題有 .md 擴展名
+      // Ensure title has .md extension
       let fileName = values.title;
       if (!fileName.endsWith(".md")) {
         fileName += ".md";
       }
 
-      // 創建完整文件路徑
+      // Create full file path
       const filePath = path.join(markdownDir, fileName);
 
-      // 處理標籤
+      // Process tags
       const tags = values.tags
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean);
 
-      // 創建文件內容，包括標籤
+      // Create file content, including tags
       let fileContent = `# ${values.title.replace(/\.md$/, "")}\n\n`;
       
-      // 如果有標籤，添加到內容中
+      // If there are tags, add them to the content
       if (tags.length > 0) {
         fileContent += `Tags: ${tags.map(tag => `#${tag}`).join(" ")}\n\n`;
       }
 
-      // 創建文件
+      // Create file
       const success = createMarkdownFile(filePath, fileContent);
       
       if (success) {
-        // 顯示成功提示
+        // Show success toast
         showToast({
           style: Toast.Style.Success,
-          title: "文件已創建",
-          message: `已創建 ${fileName}`,
+          title: "File Created",
+          message: `Created ${fileName}`,
         });
 
-        // 在 Typora 中打開
+        // Open in Typora
         openInTyporaWithSize(filePath);
         
-        // 返回文件列表並刷新
+        // Return to file list and refresh
         pop();
         onFileCreated();
       }
     } catch (error) {
       showToast({
         style: Toast.Style.Failure,
-        title: "創建文件時出錯",
-        message: error instanceof Error ? error.message : "發生未知錯誤",
+        title: "Error Creating File",
+        message: error instanceof Error ? error.message : "Unknown error occurred",
       });
     } finally {
       setIsCreating(false);
@@ -76,16 +76,16 @@ export function CreateFileForm({ markdownDir, onFileCreated }: CreateFileFormPro
       isLoading={isCreating}
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="創建 Markdown 文件" onSubmit={createAndOpenFile} />
+          <Action.SubmitForm title="Create Markdown File" onSubmit={createAndOpenFile} />
         </ActionPanel>
       }
     >
-      <Form.TextField id="title" title="文件標題" placeholder="輸入新 Markdown 文件的標題" autoFocus />
+      <Form.TextField id="title" title="File Title" placeholder="Enter title for new Markdown file" autoFocus />
       <Form.TextField 
         id="tags" 
-        title="標籤" 
-        placeholder="工作, 重要, 待辦 (逗號分隔)" 
-        info="標籤將作為 #tag 添加到您的文檔中"
+        title="Tags" 
+        placeholder="work, important, todo (comma separated)" 
+        info="Tags will be added to your document as #tags"
       />
     </Form>
   );
