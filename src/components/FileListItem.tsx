@@ -153,7 +153,7 @@ export function FileListItem({
       actions={
         <ActionPanel>
           <ActionPanel.Section>
-            <Action title="Open with Typora" icon={Icon.BlankDocument} onAction={() => openWithEditor(file.path)} />
+            <Action title="Open with Editor" icon={Icon.BlankDocument} onAction={() => openWithEditor(file.path)} />
             <Action
               title="Open in Default App"
               icon={Icon.Document}

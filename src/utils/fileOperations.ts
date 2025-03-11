@@ -160,7 +160,7 @@ export async function openWithEditor(filePath: string) {
   }
 }
 
-// Open the file in the default editor and set the window size (only works with Typora)
+// Open the file in the default editor and set the window size
 export const openInEditorWithSize = (filePath: string) => {
   const editor = getDefaultEditor();
 
