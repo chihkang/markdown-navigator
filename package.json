@@ -13,7 +13,7 @@
   "commands": [  
     {
       "name": "search-system-markdown",
-      "title": "Search and manage Markdown Files",
+      "title": "Search and Manage Markdown Files",
       "description": "Find and manage Markdown files across your entire system",
       "mode": "view",
       "subtitle": "Markdown",
