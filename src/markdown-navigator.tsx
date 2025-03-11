@@ -2,7 +2,7 @@ import { ActionPanel, Action, List, showToast, Toast, Icon, getPreferenceValues,
 import { usePromise } from "@raycast/utils";
 import { useState, useEffect, useCallback } from "react";
 import fs from "fs"; // Import fs module
-import { MarkdownFile } from "./types";
+import { MarkdownFile } from "./types/markdownTypes";
 import { getMarkdownFiles } from "./utils/fileOperations";
 import { getAllUniqueTags } from "./utils/tagOperations";
 import { CreateFileForm } from "./components/CreateFileForm";

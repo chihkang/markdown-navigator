@@ -55,6 +55,21 @@ The extension requires a valid Markdown directory to be set in preferences:
 - Specify file name and optional content
 - Choose a directory or use the current folder
 
+### Template-Based File Creation
+
+- **Multiple Templates**: Choose from various pre-defined templates when creating files:
+  - Basic: Simple structure with title, date, and tags
+  - Meeting: Template for meeting notes with agenda and action items
+  - Blog: Front matter format suitable for blog posts
+  - Project: Project planning template with goals and timeline
+  - Empty: Blank file with no pre-defined content
+
+- **Context-Aware Creation**: Create new files directly in the folder you're currently browsing
+  - When viewing files in a specific folder, new files will be created in that location
+  - Press `⌘` + `N` while browsing to create a file in the current context
+  - Templates automatically include current date and specified tags
+
+
 ### Tag Management
 
 - **Filter by Tags**: Use the dropdown in the search bar to filter by tags

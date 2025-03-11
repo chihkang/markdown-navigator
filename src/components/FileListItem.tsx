@@ -11,7 +11,7 @@ import {
   Toast,
   openCommandPreferences,
 } from "@raycast/api";
-import { MarkdownFile } from "../types";
+import { MarkdownFile } from "../types/markdownTypes";
 import { openWithEditor, moveToTrash } from "../utils/fileOperations";
 import path from "path";
 import fs from "fs";

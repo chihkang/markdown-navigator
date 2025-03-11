@@ -3,9 +3,9 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs";
 import path from "path";
-import { MarkdownFile } from "../types";
+import { MarkdownFile } from "../types/markdownTypes";
 import { extractTags } from "./tagOperations";
-import { markdownDir } from "../search-system-markdown";
+import { markdownDir } from "../markdown-navigator";
 import { LocalStorage } from "@raycast/api";
 
 const execAsync = promisify(exec);

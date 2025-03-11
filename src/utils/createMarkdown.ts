@@ -1,5 +1,5 @@
-// src/tools/create-markdown.ts
-import { showToast, Toast, open } from "@raycast/api";
+// src/utils/createMarkdown.ts
+import { showToast, Toast, open, getPreferenceValues } from "@raycast/api";
 import fs from "fs";
 import path from "path";
 import { homedir } from "os";
@@ -7,6 +7,11 @@ import { exec } from "child_process";
 import { promisify } from "util";
 
 const execPromise = promisify(exec);
+
+// Get user preferences
+interface Preferences {
+  defaultEditor: string;
+}
 
 interface CreateMarkdownOptions {
   title: string;
@@ -78,21 +83,33 @@ Tags: {{tags}}
 `,
 };
 
-// Helper function to open file with Typora
-async function openWithTypora(filePath: string): Promise<void> {
+// Helper function to open file with preferred editor
+async function openWithEditor(filePath: string): Promise<void> {
   try {
-    // Check if Typora is installed
-    const typoraPath = "/Applications/Typora.app/Contents/MacOS/Typora";
+    const preferences = getPreferenceValues<Preferences>();
+    const defaultEditor = preferences.defaultEditor || "Typora";
 
-    if (fs.existsSync(typoraPath)) {
-      // Use Typora directly
-      await execPromise(`"${typoraPath}" "${filePath}"`);
-    } else {
-      // Try using the 'open' command with Typora as the specified application
-      await execPromise(`open -a Typora "${filePath}"`);
+    // Try to open with the specified editor
+    try {
+      await execPromise(`open -a "${defaultEditor}" "${filePath}"`);
+      return;
+    } catch (editorError) {
+      console.warn(`Failed to open with ${defaultEditor}:`, editorError);
+
+      // If specified editor is Typora, try direct path as fallback
+      if (defaultEditor === "Typora") {
+        const typoraPath = "/Applications/Typora.app/Contents/MacOS/Typora";
+        if (fs.existsSync(typoraPath)) {
+          await execPromise(`"${typoraPath}" "${filePath}"`);
+          return;
+        }
+      }
+
+      // If all else fails, use default opener
+      await open(filePath);
     }
   } catch (error) {
-    console.error("Failed to open with Typora:", error);
+    console.error("Failed to open file:", error);
     // Fallback to default opener
     await open(filePath);
   }
@@ -150,8 +167,8 @@ async function createMarkdownFileHelper({
       message: `${fileName} in ${path.basename(baseDir)}`,
     });
 
-    // Open the file with Typora
-    await openWithTypora(filePath);
+    // Open the file with preferred editor
+    await openWithEditor(filePath);
 
     return filePath;
   } catch (error) {

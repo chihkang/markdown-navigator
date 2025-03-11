@@ -12,13 +12,13 @@
   "license": "MIT",
   "commands": [  
     {
-      "name": "search-system-markdown",
-      "title": "Search and Manage Markdown Files",
-      "description": "Find and manage Markdown files across your entire system",
+      "name": "markdown-navigator",
+      "title": "Markdown Navigator",
+      "description": "Browse, search and manage your Markdown files",
       "mode": "view",
       "subtitle": "Markdown",
-      "icon": "extension-icon-2.png"
-    }
+      "icon": "extension-icon.png"
+    }    
   ],
   "dependencies": {
     "@raycast/api": "^1.93.2",
