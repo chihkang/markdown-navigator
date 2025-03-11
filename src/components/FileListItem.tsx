@@ -18,7 +18,8 @@ interface FileListItemProps {
   currentPage: number;
   totalPages: number;
   setCurrentPage: (page: number) => void;
-  markdownDir: string; // Add markdownDir parameter
+  markdownDir: string;
+  setCurrentFolder?: (folder: string) => void; // Change to setCurrentFolder function
 }
 
 export function FileListItem({ 
@@ -28,7 +29,8 @@ export function FileListItem({
   currentPage, 
   totalPages, 
   setCurrentPage,
-  markdownDir
+  markdownDir,
+  setCurrentFolder
 }: FileListItemProps) {
   const { push } = useNavigation();
 
@@ -73,9 +75,13 @@ export function FileListItem({
     });
   };
 
-  // Navigate to create file form
+  // Navigate to create file form with current folder context
   const showCreateFileForm = () => {
-    push(<CreateFileForm markdownDir={markdownDir} onFileCreated={revalidate} />);
+    // Update current folder before navigating
+    if (setCurrentFolder) {
+      setCurrentFolder(file.folder);
+    }
+    push(<CreateFileForm markdownDir={markdownDir} currentFolder={file.folder} onFileCreated={revalidate} />);
   };
 
   // Filter displayed tags
@@ -99,7 +105,13 @@ export function FileListItem({
             <Action
               title="Open in Typora"
               icon={Icon.TextDocument}
-              onAction={() => openWithTypora(file.path)}
+              onAction={() => {
+                // Update current folder when opening a file
+                if (setCurrentFolder) {
+                  setCurrentFolder(file.folder);
+                }
+                openWithTypora(file.path);
+              }}
             />
             <Action
               title="Show in Finder"

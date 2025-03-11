@@ -1,72 +1,71 @@
 // src/components/CreateFileForm.tsx
 import { Form, ActionPanel, Action, showToast, Toast, useNavigation } from "@raycast/api";
 import { useState } from "react";
+import createMarkdown from "../tools/create-markdown";
 import path from "path";
-import { CreateFileFormValues } from "../types";
-import { createMarkdownFile, openInTyporaWithSize } from "../utils/fileOperations";
+import { homedir } from "os";
 
 interface CreateFileFormProps {
-  markdownDir: string;
+  rootDirectory: string;
+  currentFolder?: string;
   onFileCreated: () => void;
 }
 
-export function CreateFileForm({ markdownDir, onFileCreated }: CreateFileFormProps) {
+export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: CreateFileFormProps) {
   const { pop } = useNavigation();
   const [isCreating, setIsCreating] = useState(false);
 
-  // Create file and open in Typora
-  const createAndOpenFile = async (values: CreateFileFormValues) => {
+  // Calculate target path - use desktop as fallback
+  const baseDir = rootDirectory || path.join(homedir(), "Desktop");
+  const targetPath = currentFolder
+    ? path.join(baseDir, currentFolder)
+    : baseDir;
+
+  const handleSubmit = async (values: {
+    title: string;
+    tags: string;
+    template: string;
+  }) => {
+    if (!values.title) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Title is required",
+      });
+      return;
+    }
+
+    setIsCreating(true);
+
     try {
-      setIsCreating(true);
+      // Display the path where the archive will be created
+      await showToast({
+        style: Toast.Style.Animated,
+        title: "Creating file...",
+        message: `Path: ${targetPath}`,
+      });
 
-      // Ensure title has .md extension
-      let fileName = values.title;
-      if (!fileName.endsWith(".md")) {
-        fileName += ".md";
-      }
+      const tags = values.tags ? values.tags.split(",").map(tag => tag.trim()) : [];
 
-      // Create full file path
-      const filePath = path.join(markdownDir, fileName);
+      // Create a Markdown file and open it with Typora
+      const result = await createMarkdown({
+        title: values.title,
+        template: values.template,
+        tags,
+        targetPath,
+      });
 
-      // Process tags
-      const tags = values.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean);
-
-      // Create file content, including tags
-      let fileContent = `# ${values.title.replace(/\.md$/, "")}\n\n`;
-      
-      // If there are tags, add them to the content
-      if (tags.length > 0) {
-        fileContent += `Tags: ${tags.map(tag => `#${tag}`).join(" ")}\n\n`;
-      }
-
-      // Create file
-      const success = createMarkdownFile(filePath, fileContent);
-      
-      if (success) {
-        // Show success toast
-        showToast({
-          style: Toast.Style.Success,
-          title: "File Created",
-          message: `Created ${fileName}`,
-        });
-
-        // Open in Typora
-        openInTyporaWithSize(filePath);
-        
-        // Return to file list and refresh
-        pop();
+      if (result.filePath) {
         onFileCreated();
+        pop();
       }
     } catch (error) {
-      showToast({
+      await showToast({
         style: Toast.Style.Failure,
-        title: "Error Creating File",
-        message: error instanceof Error ? error.message : "Unknown error occurred",
+        title: "Failed to create file",
+        message: String(error),
       });
-    } finally {
+    }
+    finally {
       setIsCreating(false);
     }
   };
@@ -76,16 +75,25 @@ export function CreateFileForm({ markdownDir, onFileCreated }: CreateFileFormPro
       isLoading={isCreating}
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Create Markdown File" onSubmit={createAndOpenFile} />
+          <Action.SubmitForm title="Create File" onSubmit={handleSubmit} />
         </ActionPanel>
       }
     >
-      <Form.TextField id="title" title="File Title" placeholder="Enter title for new Markdown file" autoFocus />
-      <Form.TextField 
-        id="tags" 
-        title="Tags" 
-        placeholder="work, important, todo (comma separated)" 
-        info="Tags will be added to your document as #tags"
+      <Form.TextField id="title" title="Title" placeholder="Enter file title" />
+
+      <Form.Dropdown id="template" title="Template">
+        <Form.Dropdown.Item value="basic" title="Basic Note" />
+        <Form.Dropdown.Item value="meeting" title="Meeting Notes" />
+        <Form.Dropdown.Item value="blog" title="Blog Post" />
+        <Form.Dropdown.Item value="project" title="Project Plan" />
+        <Form.Dropdown.Item value="empty" title="Empty File" />
+      </Form.Dropdown>
+
+      <Form.TextField id="tags" title="Tags" placeholder="tag1, tag2, tag3" />
+
+      <Form.Description
+        title="Save Location"
+        text={currentFolder || "Root Directory"}
       />
     </Form>
   );

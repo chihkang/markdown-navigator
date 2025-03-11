@@ -10,16 +10,26 @@ import {
   useNavigation,
 } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MarkdownFile } from "./types";
 import { getMarkdownFiles } from "./utils/fileOperations";
 import { getAllUniqueTags } from "./utils/tagOperations";
 import { CreateFileForm } from "./components/CreateFileForm";
 import { FileListItem } from "./components/FileListItem";
 import { PaginationSection } from "./components/PaginationSection";
+import { homedir } from "os";
+import path from "path";
 
-// Get the Markdown table of contents from preferences
-const { markdownDir } = getPreferenceValues<{ markdownDir: string }>();
+// Get the Markdown directory from preferences or use Desktop as default
+let markdownDir: string;
+try {
+  const prefs = getPreferenceValues<{ markdownDir: string }>();
+  markdownDir = prefs.markdownDir;
+} catch (error) {
+  // Fallback to Desktop if preference is not set
+  markdownDir = path.join(homedir(), "Desktop");
+}
+
 const ITEMS_PER_PAGE = 20; // Number of items per page
 
 export default function Command() {
@@ -28,9 +38,28 @@ export default function Command() {
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showColorTags, setShowColorTags] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState<string>("");
+  const [rootDirectory, setRootDirectory] = useState<string>(markdownDir);
 
   // Get the Markdown files
-  const { data, isLoading, error, revalidate } = usePromise(getMarkdownFiles);
+  const { data, isLoading, error, revalidate } = usePromise(async () => {
+    const files = await getMarkdownFiles();
+    
+    // If we have files, determine the root directory from the first file
+    if (files && files.length > 0 && !rootDirectory) {
+      const firstFilePath = files[0].path;
+      const folderPath = path.dirname(firstFilePath);
+      const folderName = files[0].folder;
+      
+      // Calculate the root directory by removing the folder name from the path
+      if (folderName) {
+        const rootDir = folderPath.substring(0, folderPath.lastIndexOf(folderName));
+        setRootDirectory(rootDir);
+      }
+    }
+    
+    return files;
+  });
 
   // Handling Errors
   if (error) {
@@ -60,9 +89,9 @@ export default function Command() {
   const pageInfoText =
     filteredData.length > 0 ? `Showing ${startItem}-${endItem}, ${filteredData.length} files in total` : "File not found";
 
-  // Navigate to the Create File form
+  // Navigate to the Create File form with current folder context
   const showCreateFileForm = () => {
-    push(<CreateFileForm markdownDir={markdownDir} onFileCreated={revalidate} />);
+    push(<CreateFileForm rootDirectory={rootDirectory} currentFolder={selectedFolder} onFileCreated={revalidate} />);
   };
 
   // Get all tags
@@ -108,6 +137,15 @@ export default function Command() {
           />
         </ActionPanel>
       }
+      onSelectionChange={(id) => {
+        // When selection changes, update the selected folder
+        if (id) {
+          const file = paginatedData.find((f) => f.path === id);
+          if (file) {
+            setSelectedFolder(file.folder);
+          }
+        }
+      }}
     >
       {filteredData.length > 0 ? (
         <>
@@ -133,7 +171,11 @@ export default function Command() {
               return groups;
             }, {}),
           ).map(([folder, files]) => (
-            <List.Section key={folder} title={folder}>
+            <List.Section 
+              key={folder} 
+              title={folder}
+              subtitle={`${files.length} files`}
+            >
               {files.map((file) => (
                 <FileListItem
                   key={file.path}
@@ -143,7 +185,7 @@ export default function Command() {
                   currentPage={currentPage}
                   totalPages={totalPages}
                   setCurrentPage={setCurrentPage}
-                  markdownDir={markdownDir}
+                  markdownDir={rootDirectory}
                 />
               ))}
             </List.Section>
@@ -151,7 +193,7 @@ export default function Command() {
         </>
       ) : (
         <List.EmptyView
-          title={isLoading ? "loading..." : selectedTag ? `No files with the tag #${selectedTag}were found` : "Markdown file not found Markdown"}
+          title={isLoading ? "loading..." : selectedTag ? `No files with the tag #${selectedTag} were found` : "Markdown file not found"}
           description={
             isLoading
               ? "Try choosing a different tag"
