@@ -12,9 +12,10 @@ import {
   openCommandPreferences,
 } from "@raycast/api";
 import { MarkdownFile } from "../types";
-import { openWithTypora, moveToTrash } from "../utils/fileOperations";
+import { openWithEditor, moveToTrash } from "../utils/fileOperations";
 import path from "path";
 import fs from "fs";
+import { exec } from "child_process";
 
 interface FileListItemProps {
   file: MarkdownFile;
@@ -137,14 +138,14 @@ export function FileListItem({
               ? tag.toLowerCase().includes("important")
                 ? Color.Red
                 : tag.toLowerCase().includes("draft")
-                ? Color.Yellow
-                : tag.toLowerCase().includes("complete")
-                ? Color.Green
-                : tag.toLowerCase().includes("review")
-                ? Color.Orange
-                : tag.toLowerCase().includes("archive")
-                ? Color.Blue
-                : undefined
+                  ? Color.Yellow
+                  : tag.toLowerCase().includes("complete")
+                    ? Color.Green
+                    : tag.toLowerCase().includes("review")
+                      ? Color.Orange
+                      : tag.toLowerCase().includes("archive")
+                        ? Color.Blue
+                        : undefined
               : undefined,
           },
         })),
@@ -152,17 +153,12 @@ export function FileListItem({
       actions={
         <ActionPanel>
           <ActionPanel.Section>
-            <Action
-              title="Open with Typora"
-              icon={Icon.BlankDocument}
-              onAction={() => openWithTypora(file.path)}
-            />
+            <Action title="Open with Typora" icon={Icon.BlankDocument} onAction={() => openWithEditor(file.path)} />
             <Action
               title="Open in Default App"
               icon={Icon.Document}
               shortcut={{ modifiers: ["cmd"], key: "o" }}
               onAction={() => {
-                const { exec } = require("child_process");
                 exec(`open "${file.path}"`);
               }}
             />
@@ -177,7 +173,7 @@ export function FileListItem({
 
           <ActionPanel.Section>
             <Action
-              title="Create a new Markdown file"
+              title="Create a New Markdown File"
               icon={Icon.NewDocument}
               shortcut={{ modifiers: ["cmd"], key: "n" }}
               onAction={showCreateFileForm}

@@ -17,15 +17,9 @@ export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: 
 
   // Calculate target path - use desktop as fallback
   const baseDir = rootDirectory || path.join(homedir(), "Desktop");
-  const targetPath = currentFolder
-    ? path.join(baseDir, currentFolder)
-    : baseDir;
+  const targetPath = currentFolder ? path.join(baseDir, currentFolder) : baseDir;
 
-  const handleSubmit = async (values: {
-    title: string;
-    tags: string;
-    template: string;
-  }) => {
+  const handleSubmit = async (values: { title: string; tags: string; template: string }) => {
     if (!values.title) {
       await showToast({
         style: Toast.Style.Failure,
@@ -44,7 +38,7 @@ export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: 
         message: `Path: ${targetPath}`,
       });
 
-      const tags = values.tags ? values.tags.split(",").map(tag => tag.trim()) : [];
+      const tags = values.tags ? values.tags.split(",").map((tag) => tag.trim()) : [];
 
       // Create a Markdown file and open it with Typora
       const result = await createMarkdown({
@@ -64,8 +58,7 @@ export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: 
         title: "Failed to create file",
         message: String(error),
       });
-    }
-    finally {
+    } finally {
       setIsCreating(false);
     }
   };
@@ -91,10 +84,7 @@ export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: 
 
       <Form.TextField id="tags" title="Tags" placeholder="tag1, tag2, tag3" />
 
-      <Form.Description
-        title="Save Location"
-        text={currentFolder || "Root Directory"}
-      />
+      <Form.Description title="Save Location" text={currentFolder || "Root Directory"} />
     </Form>
   );
 }

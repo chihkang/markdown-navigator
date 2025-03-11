@@ -1,14 +1,4 @@
-import {
-  ActionPanel,
-  Action,
-  List,
-  showToast,
-  Toast,
-  Icon,
-  getPreferenceValues,
-  useNavigation,
-  LocalStorage,
-} from "@raycast/api";
+import { ActionPanel, Action, List, showToast, Toast, Icon, getPreferenceValues, useNavigation } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
 import { useState, useEffect, useCallback } from "react";
 import fs from "fs"; // Import fs module
@@ -61,7 +51,7 @@ export default function Command() {
         console.error("Error getting total files:", error);
       }
     };
-    
+
     getTotalFiles();
   }, []);
 
@@ -102,11 +92,11 @@ export default function Command() {
   // Filtering and paging data
   const filteredData = data
     ? data.filter(
-      (file) =>
-        (file.name.toLowerCase().includes(searchText.toLowerCase()) ||
-          file.folder.toLowerCase().includes(searchText.toLowerCase())) &&
-        (!selectedTag || file.tags.includes(selectedTag))
-    )
+        (file) =>
+          (file.name.toLowerCase().includes(searchText.toLowerCase()) ||
+            file.folder.toLowerCase().includes(searchText.toLowerCase())) &&
+          (!selectedTag || file.tags.includes(selectedTag)),
+      )
     : [];
   console.log("Filtered data count:", filteredData.length);
 
@@ -167,7 +157,7 @@ export default function Command() {
     <ActionPanel>
       <ActionPanel.Section>
         <Action
-          title="Create a new Markdown file"
+          title="Create a New Markdown File"
           icon={Icon.NewDocument}
           shortcut={{ modifiers: ["cmd"], key: "n" }}
           onAction={showCreateFileForm}
@@ -185,7 +175,7 @@ export default function Command() {
           onAction={loadMoreFiles}
         />
       </ActionPanel.Section>
-      
+
       <ActionPanel.Section>
         <Action
           title={showColorTags ? "Hide Color Labels" : "Show Color Labels"}
@@ -290,7 +280,7 @@ export default function Command() {
               }
               groups[key].push(file);
               return groups;
-            }, {})
+            }, {}),
           ).map(([folder, files]) => (
             <List.Section key={folder} title={folder} subtitle={`${files.length} files`}>
               {files.map((file) => (
@@ -328,7 +318,9 @@ export default function Command() {
             isLoading
               ? "This may take a moment. Please wait..."
               : error
-                ? error instanceof Error ? error.message : String(error)
+                ? error instanceof Error
+                  ? error.message
+                  : String(error)
                 : selectedTag
                   ? "Try choosing a different tag"
                   : "Create a new Markdown file to get started or set a valid directory in preferences"

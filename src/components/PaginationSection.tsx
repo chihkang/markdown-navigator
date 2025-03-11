@@ -16,7 +16,7 @@ export function PaginationSection({
   setCurrentPage,
   revalidate,
   pageInfoText,
-  loadMoreFiles
+  loadMoreFiles,
 }: PaginationSectionProps) {
   return (
     <List.Section title={`Page ${currentPage + 1} of ${totalPages}`}>
@@ -26,7 +26,7 @@ export function PaginationSection({
           <ActionPanel>
             {currentPage > 0 && (
               <Action
-                title="Previous page"
+                title="Previous Page"
                 icon={Icon.ArrowLeft}
                 shortcut={{ modifiers: ["cmd"], key: "arrowLeft" }}
                 onAction={() => setCurrentPage(currentPage - 1)}
@@ -41,7 +41,7 @@ export function PaginationSection({
               />
             )}
             <Action
-              title="Refresh list"
+              title="Refresh List"
               icon={Icon.RotateClockwise}
               shortcut={{ modifiers: ["cmd"], key: "r" }}
               onAction={revalidate}

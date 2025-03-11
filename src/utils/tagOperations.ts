@@ -16,17 +16,17 @@ export const extractTags = (filePath: string): string[] => {
   try {
     const content = fs.readFileSync(filePath, "utf8");
     const tags: string[] = [];
-    
+
     // Find inline tags #tag
     const inlineTagsMatch = content.match(/#([a-zA-Z0-9_\u4e00-\u9fa5-]+)/g); // Supports English and Chinese tags
     if (inlineTagsMatch) {
       const filteredTags = inlineTagsMatch
         .map((t) => t.substring(1))
         .filter((tag) => !isColorTag(tag) && !isNumericTag(tag)); // Filter out color code tags and numeric tags
-      
+
       tags.push(...filteredTags);
     }
-    
+
     // Find the tag in the YAML frontmatter
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
     if (frontmatterMatch) {
@@ -36,12 +36,12 @@ export const extractTags = (filePath: string): string[] => {
         const tagList = tagsMatch[1] || tagsMatch[2];
         const frontmatterTags = tagList
           .split(/,\s*/)
-          .map(t => t.trim().replace(/['"]/g, ''))
-          .filter(tag => Boolean(tag) && !isNumericTag(tag));
+          .map((t) => t.trim().replace(/['"]/g, ""))
+          .filter((tag) => Boolean(tag) && !isNumericTag(tag));
         tags.push(...frontmatterTags);
       }
     }
-    
+
     // Remove duplicates and return
     return [...new Set(tags)].filter(Boolean);
   } catch (error) {
@@ -66,5 +66,5 @@ export const getAllUniqueTags = (files: { tags: string[] }[], showColorTags: boo
 
 // Filter the displayed tags
 export const filterDisplayTags = (tags: string[], showColorTags: boolean = false): string[] => {
-  return tags.filter(tag => (showColorTags || !isColorTag(tag)) && !isNumericTag(tag));
+  return tags.filter((tag) => (showColorTags || !isColorTag(tag)) && !isNumericTag(tag));
 };

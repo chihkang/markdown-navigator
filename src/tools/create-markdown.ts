@@ -75,7 +75,7 @@ Tags: {{tags}}
 ## Resources
 
 - 
-`
+`,
 };
 
 // Helper function to open file with Typora
@@ -83,7 +83,7 @@ async function openWithTypora(filePath: string): Promise<void> {
   try {
     // Check if Typora is installed
     const typoraPath = "/Applications/Typora.app/Contents/MacOS/Typora";
-    
+
     if (fs.existsSync(typoraPath)) {
       // Use Typora directly
       await execPromise(`"${typoraPath}" "${filePath}"`);
@@ -108,17 +108,17 @@ async function createMarkdownFileHelper({
   try {
     // Use targetPath if provided, otherwise use Desktop as fallback
     const baseDir = targetPath || path.join(homedir(), "Desktop");
-    
+
     // Create filename from title
     const sanitizedTitle = title.replace(/[^a-z0-9]/gi, "-").toLowerCase();
     const fileName = `${sanitizedTitle}.md`;
     const filePath = path.join(baseDir, fileName);
-    
+
     // Check if directory exists, create if not
     if (!fs.existsSync(baseDir)) {
       fs.mkdirSync(baseDir, { recursive: true });
     }
-    
+
     // Check if file already exists
     if (fs.existsSync(filePath)) {
       await showToast({
@@ -128,10 +128,10 @@ async function createMarkdownFileHelper({
       });
       return "";
     }
-    
+
     // Get template content
     let content = templates[template as keyof typeof templates] || templates.basic;
-    
+
     // Replace placeholders
     const now = new Date();
     const formattedDate = now.toISOString().split("T")[0];
@@ -139,20 +139,20 @@ async function createMarkdownFileHelper({
       .replace(/{{title}}/g, title)
       .replace(/{{date}}/g, formattedDate)
       .replace(/{{tags}}/g, tags && tags.length > 0 ? tags.join(", ") : "");
-    
+
     // Write file
     fs.writeFileSync(filePath, content);
-    
+
     // Show success toast with path information
     await showToast({
       style: Toast.Style.Success,
       title: "Markdown file created",
       message: `${fileName} in ${path.basename(baseDir)}`,
     });
-    
+
     // Open the file with Typora
     await openWithTypora(filePath);
-    
+
     return filePath;
   } catch (error) {
     console.error("Error creating Markdown file:", error);

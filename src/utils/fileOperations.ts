@@ -1,4 +1,4 @@
-import { showToast, Toast } from "@raycast/api";
+import { showToast, Toast, getPreferenceValues } from "@raycast/api";
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs";
@@ -10,7 +10,13 @@ import { LocalStorage } from "@raycast/api";
 
 const execAsync = promisify(exec);
 const CACHE_KEY = "markdownFilesCache";
-const CACHE_EXPIRY = 3600000; // 1 小時
+const CACHE_EXPIRY = 3600000; // one hour
+
+// Get preferences for default editor
+interface Preferences {
+  markdownDir: string;
+  defaultEditor: string;
+}
 
 // Get the Markdown file with optional limit
 export async function getMarkdownFiles(limit?: number): Promise<MarkdownFile[]> {
@@ -26,7 +32,7 @@ export async function getMarkdownFiles(limit?: number): Promise<MarkdownFile[]> 
       const { files, timestamp } = JSON.parse(cached);
       if (now - timestamp < CACHE_EXPIRY) {
         console.log("Using cached files");
-        return files.map((f: any) => ({
+        return files.map((f: { path: string; name: string; lastModified: string; folder: string; tags: string[] }) => ({
           ...f,
           lastModified: new Date(f.lastModified),
         }));
@@ -34,8 +40,8 @@ export async function getMarkdownFiles(limit?: number): Promise<MarkdownFile[]> 
     }
 
     // Use the mdfind command to search within markdownDir
-    let { stdout } = await execAsync(
-      `mdfind -onlyin "${markdownDir}" "kind:markdown" | grep -v "/Library/Application Support/Code/User/History/" | grep -v "node_modules"`
+    const { stdout } = await execAsync(
+      `mdfind -onlyin "${markdownDir}" "kind:markdown" | grep -v "/Library/Application Support/Code/User/History/" | grep -v "node_modules"`,
     );
 
     let filePaths = stdout.split("\n").filter(Boolean);
@@ -84,7 +90,7 @@ export async function getMarkdownFiles(limit?: number): Promise<MarkdownFile[]> 
     try {
       console.log("Falling back to find command");
       const { stdout } = await execAsync(
-        `find "${markdownDir}" -name "*.md" -type f -not -path "*/\\.*" -not -path "*/node_modules/*" -not -path "*/Library/*"`
+        `find "${markdownDir}" -name "*.md" -type f -not -path "*/\\.*" -not -path "*/node_modules/*" -not -path "*/Library/*"`,
       );
 
       let filePaths = stdout.split("\n").filter(Boolean);
@@ -111,6 +117,7 @@ export async function getMarkdownFiles(limit?: number): Promise<MarkdownFile[]> 
 
       const sortedFiles = files.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
       if (!limit) {
+        const now = Date.now();
         await LocalStorage.setItem(CACHE_KEY, JSON.stringify({ files: sortedFiles, timestamp: now }));
       }
       return sortedFiles;
@@ -126,47 +133,62 @@ export async function getMarkdownFiles(limit?: number): Promise<MarkdownFile[]> 
   }
 }
 
-// Open the file in Typora
-export async function openWithTypora(filePath: string) {
+// Get the default editor from preferences
+function getDefaultEditor(): string {
+  const preferences = getPreferenceValues<Preferences>();
+  return preferences.defaultEditor || "Typora"; // Fallback to Typora if not set
+}
+
+// Open the file in the default editor
+export async function openWithEditor(filePath: string) {
   try {
-    console.log(`Open file: ${filePath}`);
-    await execAsync(`open -a Typora "${filePath}"`);
+    const editor = getDefaultEditor();
+    console.log(`Opening file: ${filePath} with ${editor}`);
+    await execAsync(`open -a "${editor}" "${filePath}"`);
 
     showToast({
       style: Toast.Style.Success,
-      title: "The file has been opened in Typora",
+      title: `The file has been opened in ${editor}`,
     });
   } catch (error) {
-    console.error("Error opening file using Typora:", error);
+    console.error(`Error opening file using ${getDefaultEditor()}:`, error);
     showToast({
       style: Toast.Style.Failure,
       title: "Unable to open file",
-      message: String(error),
+      message: `Make sure ${getDefaultEditor()} is installed or change your default editor in preferences.`,
     });
   }
 }
 
-// Open the file in Typora and set the window size
-export const openInTyporaWithSize = (filePath: string) => {
-  const appleScript = `
-    tell application "Typora"
-      activate
-      open "${filePath}"
-      delay 0.5 -- wait for the window to load
-      tell front window
-        set bounds to {100, 100, 1400, 850} -- {left, top, width, height}
+// Open the file in the default editor and set the window size (only works with Typora)
+export const openInEditorWithSize = (filePath: string) => {
+  const editor = getDefaultEditor();
+
+  // This AppleScript only works with Typora
+  if (editor === "Typora") {
+    const appleScript = `
+      tell application "Typora"
+        activate
+        open "${filePath}"
+        delay 0.5 -- wait for the window to load
+        tell front window
+          set bounds to {100, 100, 1400, 850} -- {left, top, width, height}
+        end tell
       end tell
-    end tell
-  `;
-  exec(`osascript -e '${appleScript}'`, (error) => {
-    if (error) {
-      showToast({
-        style: Toast.Style.Failure,
-        title: "Cannot open Typora",
-        message: "Please make sure Typora is installed and supports AppleScript",
-      });
-    }
-  });
+    `;
+    exec(`osascript -e '${appleScript}'`, (error) => {
+      if (error) {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "Cannot open Typora",
+          message: "Please make sure Typora is installed and supports AppleScript",
+        });
+      }
+    });
+  } else {
+    // For other editors, just open without window sizing
+    openWithEditor(filePath);
+  }
 };
 
 // Create a new Markdown file

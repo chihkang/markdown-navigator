@@ -44,17 +44,15 @@ const extractTags = (filePath: string): string[] => {
   try {
     const content = fs.readFileSync(filePath, "utf8");
     const tags: string[] = [];
-    
+
     // 尋找內聯標籤 #tag
     const inlineTagsMatch = content.match(/#([a-zA-Z0-9_\u4e00-\u9fa5-]+)/g); // 支持英文和中文標籤
     if (inlineTagsMatch) {
-      const filteredTags = inlineTagsMatch
-        .map((t) => t.substring(1))
-        .filter((tag) => !isColorTag(tag)); // 過濾掉顏色代碼標籤
-      
+      const filteredTags = inlineTagsMatch.map((t) => t.substring(1)).filter((tag) => !isColorTag(tag)); // 過濾掉顏色代碼標籤
+
       tags.push(...filteredTags);
     }
-    
+
     // 去重並返回
     return [...new Set(tags)].filter(Boolean);
   } catch (error) {
@@ -129,10 +127,10 @@ function CreateFileForm({ onFileCreated }: { onFileCreated: () => void }) {
 
       // 創建文件內容，包括標籤
       let fileContent = `# ${values.title.replace(/\.md$/, "")}\n\n`;
-      
+
       // 如果有標籤，添加到內容中
       if (tags.length > 0) {
-        fileContent += `Tags: ${tags.map(tag => `#${tag}`).join(" ")}\n\n`;
+        fileContent += `Tags: ${tags.map((tag) => `#${tag}`).join(" ")}\n\n`;
       }
 
       fs.writeFileSync(filePath, fileContent);
@@ -146,7 +144,7 @@ function CreateFileForm({ onFileCreated }: { onFileCreated: () => void }) {
 
       // Open in Typora
       openInTypora(filePath);
-      
+
       // Return to file list and refresh
       pop();
       onFileCreated();
@@ -171,10 +169,10 @@ function CreateFileForm({ onFileCreated }: { onFileCreated: () => void }) {
       }
     >
       <Form.TextField id="title" title="File Title" placeholder="Enter title for new markdown file" autoFocus />
-      <Form.TextField 
-        id="tags" 
-        title="Tags" 
-        placeholder="work, important, todo (comma separated)" 
+      <Form.TextField
+        id="tags"
+        title="Tags"
+        placeholder="work, important, todo (comma separated)"
         info="Tags will be added as #tag in your document"
       />
     </Form>
@@ -314,13 +312,11 @@ export default function Command() {
   };
 
   // 過濾文件
-  const filteredFiles = selectedTag
-    ? files.filter((file) => file.tags.includes(selectedTag))
-    : files;
+  const filteredFiles = selectedTag ? files.filter((file) => file.tags.includes(selectedTag)) : files;
 
   // 過濾顯示的標籤
   const displayTags = (tags: string[]): string[] => {
-    return showColorTags ? tags : tags.filter(tag => !isColorTag(tag));
+    return showColorTags ? tags : tags.filter((tag) => !isColorTag(tag));
   };
 
   return (
@@ -329,11 +325,7 @@ export default function Command() {
       searchBarPlaceholder="Search Markdown files..."
       searchBarAccessory={
         getAllTags().length > 0 ? (
-          <List.Dropdown
-            tooltip="Filter by tag"
-            value={selectedTag || ""}
-            onChange={setSelectedTag}
-          >
+          <List.Dropdown tooltip="Filter by tag" value={selectedTag || ""} onChange={setSelectedTag}>
             <List.Dropdown.Item title="All Tags" value="" />
             {getAllTags().map((tag) => (
               <List.Dropdown.Item key={tag} title={`#${tag}`} value={tag} />
@@ -364,7 +356,13 @@ export default function Command() {
             key={file.path}
             id={file.path}
             title={file.title}
-            subtitle={displayTags(file.tags).length > 0 ? displayTags(file.tags).map(tag => `#${tag}`).join(" ") : undefined}
+            subtitle={
+              displayTags(file.tags).length > 0
+                ? displayTags(file.tags)
+                    .map((tag) => `#${tag}`)
+                    .join(" ")
+                : undefined
+            }
             accessories={[{ text: file.detailedTime, tooltip: "Last modified" }]}
             actions={
               <ActionPanel>
@@ -392,11 +390,7 @@ export default function Command() {
                     onAction={loadFiles}
                   />
                   {selectedTag && (
-                    <Action
-                      title="Clear Tag Filter"
-                      icon={Icon.XmarkCircle}
-                      onAction={() => setSelectedTag(null)}
-                    />
+                    <Action title="Clear Tag Filter" icon={Icon.XmarkCircle} onAction={() => setSelectedTag(null)} />
                   )}
                 </ActionPanel.Section>
               </ActionPanel>
@@ -410,22 +404,10 @@ export default function Command() {
           icon={Icon.Document}
           actions={
             <ActionPanel>
-              <Action
-                title="New Markdown File"
-                icon={Icon.NewDocument}
-                onAction={showCreateFileForm}
-              />
-              <Action
-                title="Refresh List"
-                icon={Icon.RotateClockwise}
-                onAction={loadFiles}
-              />
+              <Action title="New Markdown File" icon={Icon.NewDocument} onAction={showCreateFileForm} />
+              <Action title="Refresh List" icon={Icon.RotateClockwise} onAction={loadFiles} />
               {selectedTag && (
-                <Action
-                  title="Clear Tag Filter"
-                  icon={Icon.XmarkCircle}
-                  onAction={() => setSelectedTag(null)}
-                />
+                <Action title="Clear Tag Filter" icon={Icon.XmarkCircle} onAction={() => setSelectedTag(null)} />
               )}
             </ActionPanel>
           }

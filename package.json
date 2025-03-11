@@ -22,12 +22,6 @@
   ],
   "tools": [
     {
-      "name": "search-markdown",
-      "title": "Search Markdown Files",
-      "description": "Search for markdown files based on query, scope, and optional tags",
-      "icon": "extension-icon-1.png"
-    },
-    {
       "name": "open-markdown",
       "title": "Open Markdown File",
       "description": "Open a markdown file in Typora",
@@ -76,6 +70,15 @@
       "description": "Specify the directory path for storing Markdown files",
       "type": "directory",
       "required": true
+    },
+    {
+      "name": "defaultEditor",
+      "title": "Default Markdown Editor",
+      "description": "The application to use for opening Markdown files",
+      "type": "textfield",
+      "default": "Typora",
+      "placeholder": "Typora, Visual Studio Code, iA Writer, etc.",
+      "required": false
     }
   ]
 }
