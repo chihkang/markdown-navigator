@@ -277,6 +277,7 @@ export default function Command() {
               setCurrentPage={setCurrentPage}
               revalidate={revalidate}
               pageInfoText={pageInfoText}
+              loadMoreFiles={loadMoreFiles}
             />
           )}
 

@@ -7,6 +7,7 @@ interface PaginationSectionProps {
   setCurrentPage: (page: number) => void;
   revalidate: () => void;
   pageInfoText: string;
+  loadMoreFiles: () => void;
 }
 
 export function PaginationSection({
@@ -14,7 +15,8 @@ export function PaginationSection({
   totalPages,
   setCurrentPage,
   revalidate,
-  pageInfoText
+  pageInfoText,
+  loadMoreFiles
 }: PaginationSectionProps) {
   return (
     <List.Section title={`Page ${currentPage + 1} of ${totalPages}`}>
@@ -27,7 +29,7 @@ export function PaginationSection({
                 title="Previous page"
                 icon={Icon.ArrowLeft}
                 shortcut={{ modifiers: ["cmd"], key: "arrowLeft" }}
-                onAction = {() => setCurrentPage(currentPage - 1)}
+                onAction={() => setCurrentPage(currentPage - 1)}
               />
             )}
             {currentPage < totalPages - 1 && (
@@ -35,7 +37,7 @@ export function PaginationSection({
                 title="Next Page"
                 icon={Icon.ArrowRight}
                 shortcut={{ modifiers: ["cmd"], key: "arrowRight" }}
-                onAction = {() => setCurrentPage(currentPage + 1)}
+                onAction={() => setCurrentPage(currentPage + 1)}
               />
             )}
             <Action
@@ -43,6 +45,12 @@ export function PaginationSection({
               icon={Icon.RotateClockwise}
               shortcut={{ modifiers: ["cmd"], key: "r" }}
               onAction={revalidate}
+            />
+            <Action
+              title="Load More Files"
+              icon={Icon.Plus}
+              shortcut={{ modifiers: ["cmd", "shift"], key: "m" }}
+              onAction={loadMoreFiles}
             />
           </ActionPanel>
         }
