@@ -1,8 +1,8 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "markdown-navigator-typora",
-  "title": "Markdown Navigator for Typora",
-  "description": "Efficiently manage your Markdown files with Typora.",
+  "name": "markdown-navigator",
+  "title": "Markdown Navigator",
+  "description": "Efficiently manage your Markdown files.",
   "icon": "extension-icon.png",
   "author": "chihkang",
   "categories": [
@@ -13,10 +13,10 @@
   "commands": [  
     {
       "name": "search-system-markdown",
-      "title": "Search System Markdown Files",
+      "title": "Search and manage Markdown Files",
       "description": "Find and manage Markdown files across your entire system",
       "mode": "view",
-      "subtitle": "Typora",
+      "subtitle": "Markdown",
       "icon": "extension-icon-2.png"
     }
   ],
@@ -24,7 +24,7 @@
     {
       "name": "open-markdown",
       "title": "Open Markdown File",
-      "description": "Open a markdown file in Typora",
+      "description": "Open a markdown file in editor",
       "icon": "extension-icon-1.png"
     },
     {
