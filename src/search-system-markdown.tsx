@@ -1,4 +1,3 @@
-// src/search-system-markdown.tsx
 import {
   ActionPanel,
   Action,
@@ -21,13 +20,14 @@ import { homedir } from "os";
 import path from "path";
 
 // Get the Markdown directory from preferences or use Desktop as default
-let markdownDir: string;
+export let markdownDir: string;
 try {
   const prefs = getPreferenceValues<{ markdownDir: string }>();
-  markdownDir = prefs.markdownDir;
+  markdownDir = prefs.markdownDir || path.join(homedir(), "Desktop");
 } catch (error) {
   // Fallback to Desktop if preference is not set
   markdownDir = path.join(homedir(), "Desktop");
+  console.error("Error getting preferences, using Desktop as fallback:", error);
 }
 
 const ITEMS_PER_PAGE = 20; // Number of items per page
@@ -44,20 +44,22 @@ export default function Command() {
   // Get the Markdown files
   const { data, isLoading, error, revalidate } = usePromise(async () => {
     const files = await getMarkdownFiles();
-    
+    console.log("Loaded Markdown files:", files.map(f => ({ path: f.path, folder: f.folder })));
+
     // If we have files, determine the root directory from the first file
     if (files && files.length > 0 && !rootDirectory) {
       const firstFilePath = files[0].path;
       const folderPath = path.dirname(firstFilePath);
       const folderName = files[0].folder;
-      
+
       // Calculate the root directory by removing the folder name from the path
       if (folderName) {
         const rootDir = folderPath.substring(0, folderPath.lastIndexOf(folderName));
         setRootDirectory(rootDir);
+        console.log("Set root directory:", rootDir);
       }
     }
-    
+
     return files;
   });
 
@@ -75,13 +77,15 @@ export default function Command() {
     ? data.filter(
         (file) =>
           (file.name.toLowerCase().includes(searchText.toLowerCase()) ||
-          file.folder.toLowerCase().includes(searchText.toLowerCase())) &&
+            file.folder.toLowerCase().includes(searchText.toLowerCase())) &&
           (!selectedTag || file.tags.includes(selectedTag))
       )
     : [];
+  console.log("Filtered data:", filteredData.map(f => ({ path: f.path, folder: f.folder })));
 
   const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
   const paginatedData = filteredData.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE);
+  console.log("Paginated data:", paginatedData.map(f => ({ path: f.path, folder: f.folder })));
 
   // Calculate the current page display range
   const startItem = currentPage * ITEMS_PER_PAGE + 1;
@@ -104,6 +108,7 @@ export default function Command() {
       onSearchTextChange={(text) => {
         setSearchText(text);
         setCurrentPage(0); // Reset to first page when searching
+        console.log("Search text changed:", text);
       }}
       searchText={searchText}
       navigationTitle={`Markdown files (${filteredData.length} items)`}
@@ -112,7 +117,10 @@ export default function Command() {
           <List.Dropdown
             tooltip="Filter by Tags"
             value={selectedTag || ""}
-            onChange={setSelectedTag}
+            onChange={(newTag) => {
+              setSelectedTag(newTag);
+              console.log("Selected tag:", newTag);
+            }}
           >
             <List.Dropdown.Item title="All tags" value="" />
             {allTags.map((tag) => (
@@ -143,6 +151,7 @@ export default function Command() {
           const file = paginatedData.find((f) => f.path === id);
           if (file) {
             setSelectedFolder(file.folder);
+            console.log("Selected folder:", file.folder);
           }
         }
       }}
@@ -171,11 +180,7 @@ export default function Command() {
               return groups;
             }, {}),
           ).map(([folder, files]) => (
-            <List.Section 
-              key={folder} 
-              title={folder}
-              subtitle={`${files.length} files`}
-            >
+            <List.Section key={folder} title={folder} subtitle={`${files.length} files`}>
               {files.map((file) => (
                 <FileListItem
                   key={file.path}
@@ -193,7 +198,13 @@ export default function Command() {
         </>
       ) : (
         <List.EmptyView
-          title={isLoading ? "loading..." : selectedTag ? `No files with the tag #${selectedTag} were found` : "Markdown file not found"}
+          title={
+            isLoading
+              ? "loading..."
+              : selectedTag
+              ? `No files with the tag #${selectedTag} were found`
+              : "Markdown file not found"
+          }
           description={
             isLoading
               ? "Try choosing a different tag"

@@ -1,4 +1,3 @@
-// src/utils/fileOperations.ts
 import { showToast, Toast } from "@raycast/api";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -6,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import { MarkdownFile } from "../types";
 import { extractTags } from "./tagOperations";
+import { markdownDir } from "../search-system-markdown"; // 假設從主檔案導入
 
 const execAsync = promisify(exec);
 
@@ -13,10 +13,12 @@ const execAsync = promisify(exec);
 export async function getMarkdownFiles(): Promise<MarkdownFile[]> {
   try {
     // Use the mdfind command but exclude VS Code history files
-    const { stdout } = await execAsync('mdfind -onlyin ~ "kind:markdown" | grep -v "/Library/Application Support/Code/User/History/" | grep -v "node_modules" | head -n 200');
+    const { stdout } = await execAsync(
+      `mdfind -onlyin ~ "kind:markdown" | grep -v "/Library/Application Support/Code/User/History/" | grep -v "node_modules"`
+    );
 
     const filePaths = stdout.split("\n").filter(Boolean);
-    console.log(`Found ${filePaths.length} Markdown files`);
+    console.log(`Found ${filePaths.length} Markdown files using mdfind`);
 
     const files: MarkdownFile[] = [];
 
@@ -25,15 +27,18 @@ export async function getMarkdownFiles(): Promise<MarkdownFile[]> {
         if (fs.existsSync(filePath)) {
           const stats = fs.statSync(filePath);
           const dirname = path.dirname(filePath);
-          const folderName = path.basename(dirname);
+          const folder = path.relative(markdownDir, dirname) || path.basename(dirname); // 相對於 markdownDir 的路徑
 
           files.push({
             path: filePath,
             name: path.basename(filePath),
             lastModified: stats.mtime,
-            folder: folderName,
+            folder: folder,
             tags: extractTags(filePath),
           });
+          console.log(`Processed file: ${filePath}, folder: ${folder}`);
+        } else {
+          console.warn(`File not found: ${filePath}`);
         }
       } catch (error) {
         console.error(`Error processing file ${filePath}:`, error);
@@ -43,33 +48,40 @@ export async function getMarkdownFiles(): Promise<MarkdownFile[]> {
     // Sort by last modified time, with the latest one first
     return files.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
   } catch (error) {
-    console.error("Error while searching for Markdown file:", error);
+    console.error("Error while searching for Markdown files with mdfind:", error);
 
-    // If mdfind fails, try using the find command
+    // Fallback to find command
     try {
-      console.log("Try using find command as a fallback");
-      const { stdout } = await execAsync('find ~ -name "*.md" -type f -not -path "*/\\.*" | head -n 200');
+      console.log("Falling back to find command");
+      const { stdout } = await execAsync(
+        `find ~ -name "*.md" -type f -not -path "*/\\.*" -not -path "*/node_modules/*" -not -path "*/Library/*"`
+      );
 
       const filePaths = stdout.split("\n").filter(Boolean);
-      console.log(`Alternative method found ${filePaths.length} Markdown files`);
+      console.log(`Found ${filePaths.length} Markdown files using find`);
 
       return filePaths
         .map((filePath) => {
           const stats = fs.statSync(filePath);
           const dirname = path.dirname(filePath);
-          const folderName = path.basename(dirname);
+          const folder = path.relative(markdownDir, dirname) || path.basename(dirname);
 
           return {
             path: filePath,
             name: path.basename(filePath),
             lastModified: stats.mtime,
-            folder: folderName,
+            folder: folder,
             tags: extractTags(filePath),
           };
         })
         .sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
     } catch (fallbackError) {
       console.error("Alternative method also failed:", fallbackError);
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to load Markdown files",
+        message: "Both mdfind and find commands failed. Check console for details.",
+      });
       return [];
     }
   }
