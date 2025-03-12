@@ -152,10 +152,11 @@ async function createMarkdownFileHelper({
     // Replace placeholders
     const now = new Date();
     const formattedDate = now.toISOString().split("T")[0];
+    const formattedTags = tags.map(tag => tag.startsWith('#') ? tag : `#${tag}`);
     content = content
       .replace(/{{title}}/g, title)
       .replace(/{{date}}/g, formattedDate)
-      .replace(/{{tags}}/g, tags && tags.length > 0 ? tags.join(", ") : "");
+      .replace(/{{tags}}/g, formattedTags && formattedTags.length > 0 ? formattedTags.join(", ") : "");
 
     // Write file
     fs.writeFileSync(filePath, content);
