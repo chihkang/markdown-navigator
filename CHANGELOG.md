@@ -3,36 +3,20 @@
 ## [1.0.0] - {PR_MERGE_DATE}
 
 ### Added
-- Initial release of Markdown Navigator extension
-- "Browse Project Markdown Files" command to manage files in a specific directory
-- "Search System Markdown Files" command with pagination and folder grouping
-- File management features including:
-  - Opening files in your preferred Markdown editor
-  - Moving files to trash
-  - Revealing files in Finder
-  - Copying file paths
-- Pagination for handling large file collections
-- Folder-based grouping for better organization
-- Relative time display for file modification dates
-- Search functionality by filename or folder
-- Keyboard shortcuts for all major actions
-- Confirmation dialogs for destructive actions
-- Progressive file loading for better performance with large collections
+- Initial release with fast file browsing and search functionality
+- Tag filtering with color-coded system tags (Important, Draft, Complete, Review, Archive)
+- Smart tag extraction from inline hashtags and YAML frontmatter
+- File management actions (open, delete, move to trash, show in Finder)
+- Multiple template options for new file creation (Basic, Meeting, Blog, Project, Empty)
+- Context-aware file creation in current folder
+- Progressive loading system for large file collections
+- Pagination with keyboard shortcuts (⌘← and ⌘→)
+- Folder organization with automatic grouping
+- Tag management interface with dedicated search (⌘T)
 
-### Technical
-- Built with TypeScript and React
-- Uses Raycast API and utilities
-- Implements macOS native features via AppleScript
-- Fallback mechanisms for file searching
-- Configurable default editor preference
+### Changed
+- Optimized initial loading to 50 files with incremental loading for better performance
 
-## Future Plans
-- Template selection when creating new files
-- Enhanced tag-based file organization
-- Favorites/bookmarks for frequently accessed files
-- Preview content in Raycast before opening
-- Additional editor integrations and customizations
-
----
-
-*Note: This extension works best with a Markdown editor installed on your system. By default, it's configured to use Typora, but you can change this in the extension preferences.*
+### Fixed
+- Proper handling of both English and Chinese tags
+- Fallback mechanisms for file searching when preferred methods unavailable
