@@ -276,6 +276,11 @@ export default function Command() {
               revalidate={revalidate}
               pageInfoText={pageInfoText}
               loadMoreFiles={loadMoreFiles}
+              showTagSearchList={showTagSearchList}
+              selectedTag={selectedTag}
+              setSelectedTag={setSelectedTag}
+              showColorTags={showColorTags}
+              setShowColorTags={setShowColorTags}
             />
           )}
 
@@ -295,9 +300,9 @@ export default function Command() {
                   markdownDir={rootDirectory}
                   loadMoreFiles={loadMoreFiles}
                   showCreateFileForm={showCreateFileForm}
-                  showTagSearchList={showTagSearchList} // Add this prop
-                  selectedTag={selectedTag} // Add this prop
-                  setSelectedTag={setSelectedTag} // Add this prop
+                  showTagSearchList={showTagSearchList}
+                  selectedTag={selectedTag}
+                  setSelectedTag={setSelectedTag}
                 />
               ))}
             </List.Section>
