@@ -1,4 +1,4 @@
-import { showToast, Toast, getPreferenceValues } from "@raycast/api";
+import { showToast, Toast, getPreferenceValues, trash as raycastTrash } from "@raycast/api";
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs";
@@ -16,6 +16,16 @@ const CACHE_EXPIRY = 3600000; // one hour
 interface Preferences {
   markdownDir: string;
   defaultEditor: string;
+}
+
+// Clear the markdown files cache
+export async function clearMarkdownFilesCache(): Promise<void> {
+  try {
+    await LocalStorage.removeItem(CACHE_KEY);
+    console.log("Markdown files cache cleared");
+  } catch (error) {
+    console.error("Error clearing markdown files cache:", error);
+  }
 }
 
 // Get the Markdown file with optional limit
@@ -223,28 +233,15 @@ export const createMarkdownFile = (filePath: string, content: string): boolean =
   }
 };
 
-// Move the file to the trash
-export async function moveToTrash(file: MarkdownFile) {
+// Move file to trash using Raycast's trash API
+export async function moveToTrash(filePath: string): Promise<boolean> {
   try {
-    // Use AppleScript to move files to the Trash
-    const escapedPath = file.path.replace(/'/g, "'\\''");
-    await execAsync(`osascript -e 'tell application "Finder" to delete POSIX file "${escapedPath}"'`);
-
-    showToast({
-      style: Toast.Style.Success,
-      title: "The file has been moved to the trash",
-      message: `"${file.name}" has been moved to the trash`,
-    });
-
+    await raycastTrash(filePath);
+    // Clear cache after moving file to trash
+    await clearMarkdownFilesCache();
     return true;
   } catch (error) {
     console.error("Error moving file to trash:", error);
-    showToast({
-      style: Toast.Style.Failure,
-      title: "Cannot move to trash",
-      message: String(error),
-    });
-
     return false;
   }
 }

@@ -10,6 +10,7 @@ import {
   showToast,
   Toast,
   openCommandPreferences,
+  trash,
 } from "@raycast/api";
 import { MarkdownFile } from "../types/markdownTypes";
 import { openWithEditor, moveToTrash } from "../utils/fileOperations";
@@ -26,7 +27,7 @@ interface FileListItemProps {
   setCurrentPage: (page: number) => void;
   markdownDir: string;
   loadMoreFiles: () => void;
-  showCreateFileForm: () => void; // Add this prop for creating files
+  showCreateFileForm: () => void;
 }
 
 export function FileListItem({
@@ -38,7 +39,7 @@ export function FileListItem({
   setCurrentPage,
   markdownDir,
   loadMoreFiles,
-  showCreateFileForm, // Add this prop
+  showCreateFileForm,
 }: FileListItemProps) {
   // Format the date
   const formatDate = (date: Date) => {
@@ -86,6 +87,29 @@ export function FileListItem({
           message: String(error),
         });
       }
+    }
+  };
+
+  // Move file to trash using Raycast's trash API
+  const handleMoveToTrash = async () => {
+    try {
+      const success = await moveToTrash(file.path);
+      if (success) {
+        showToast({
+          style: Toast.Style.Success,
+          title: "File moved to trash",
+          message: `${file.name} has been moved to trash`,
+        });
+        revalidate();
+      } else {
+        throw new Error("Failed to move file to trash");
+      }
+    } catch (error) {
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Error moving file to trash",
+        message: error instanceof Error ? error.message : String(error),
+      });
     }
   };
 
@@ -198,7 +222,7 @@ export function FileListItem({
               icon={Icon.Trash}
               style={Action.Style.Destructive}
               shortcut={{ modifiers: ["ctrl"], key: "x" }}
-              onAction={() => moveToTrash(file)}
+              onAction={handleMoveToTrash}
             />
             <Action
               title="Delete File"

@@ -2,13 +2,14 @@ import { List, showToast, Toast, Icon, getPreferenceValues, useNavigation } from
 import { usePromise } from "@raycast/utils";
 import { useState, useEffect, useCallback } from "react";
 import fs from "fs"; // Import fs module
-import { MarkdownFile } from "./types/markdownTypes";
 import { getMarkdownFiles } from "./utils/fileOperations";
 import { getAllUniqueTags } from "./utils/tagOperations";
+import { groupFilesByFolder } from "./utils/groupOperations";
 import { CreateFileForm } from "./components/CreateFileForm";
 import { FileListItem } from "./components/FileListItem";
 import { PaginationSection } from "./components/PaginationSection";
 import { CommonActions, LoadMoreAction } from "./components/ActionComponents";
+import { MarkdownEmptyView } from "./components/MarkdownEmptyView";
 import path from "path";
 
 export const markdownDir = getPreferenceValues<{ markdownDir: string }>().markdownDir;
@@ -152,6 +153,7 @@ export default function Command() {
       });
     }
   };
+
   const commonActionsProps = {
     showCreateFileForm,
     revalidate,
@@ -161,6 +163,7 @@ export default function Command() {
     selectedTag,
     setSelectedTag,
   };
+
   // Common actions for both main view and empty view
   const commonActions = <CommonActions {...commonActionsProps} />;
 
@@ -232,16 +235,7 @@ export default function Command() {
           )}
 
           {/* Group by folder */}
-          {Object.entries(
-            paginatedData.reduce<Record<string, MarkdownFile[]>>((groups, file) => {
-              const key = file.folder;
-              if (!groups[key]) {
-                groups[key] = [];
-              }
-              groups[key].push(file);
-              return groups;
-            }, {}),
-          ).map(([folder, files]) => (
+          {Object.entries(groupFilesByFolder(paginatedData)).map(([folder, files]) => (
             <List.Section key={folder} title={folder} subtitle={`${files.length} files`}>
               {files.map((file) => (
                 <FileListItem
@@ -264,29 +258,7 @@ export default function Command() {
           {renderFooter()}
         </>
       ) : (
-        <List.EmptyView
-          title={
-            isLoading
-              ? "Scanning Markdown files..."
-              : error
-                ? "Error loading files"
-                : selectedTag
-                  ? `No files with the tag #${selectedTag} were found`
-                  : "Markdown file not found"
-          }
-          description={
-            isLoading
-              ? "This may take a moment. Please wait..."
-              : error
-                ? error instanceof Error
-                  ? error.message
-                  : String(error)
-                : selectedTag
-                  ? "Try choosing a different tag"
-                  : "Create a new Markdown file to get started or set a valid directory in preferences"
-          }
-          actions={commonActions}
-        />
+        <MarkdownEmptyView isLoading={isLoading} error={error} selectedTag={selectedTag} actions={commonActions} />
       )}
     </List>
   );
