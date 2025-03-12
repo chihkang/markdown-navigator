@@ -15,17 +15,17 @@ export const isNumericTag = (tag: string): boolean => {
 
 // Check if a tag is a system tag
 export const isSystemTag = (tag: string): boolean => {
-  return SYSTEM_TAGS.some(systemTag => 
-    tag.toLowerCase() === systemTag.id.toLowerCase() || 
-    tag.toLowerCase().includes(systemTag.id.toLowerCase())
+  return SYSTEM_TAGS.some(
+    (systemTag) =>
+      tag.toLowerCase() === systemTag.id.toLowerCase() || tag.toLowerCase().includes(systemTag.id.toLowerCase()),
   );
 };
 
 // Get system tag by tag name
 export const getSystemTag = (tag: string): SystemTag | undefined => {
-  return SYSTEM_TAGS.find(systemTag => 
-    tag.toLowerCase() === systemTag.id.toLowerCase() || 
-    tag.toLowerCase().includes(systemTag.id.toLowerCase())
+  return SYSTEM_TAGS.find(
+    (systemTag) =>
+      tag.toLowerCase() === systemTag.id.toLowerCase() || tag.toLowerCase().includes(systemTag.id.toLowerCase()),
   );
 };
 
@@ -73,7 +73,7 @@ export const sortTags = (tags: string[]): string[] => {
   return [...tags].sort((a, b) => {
     const aIsSystem = isSystemTag(a);
     const bIsSystem = isSystemTag(b);
-    
+
     if (aIsSystem && !bIsSystem) return -1;
     if (!aIsSystem && bIsSystem) return 1;
     return a.localeCompare(b);

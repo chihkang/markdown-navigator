@@ -15,15 +15,13 @@ interface CreateFileFormProps {
 export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: CreateFileFormProps) {
   const { pop } = useNavigation();
   const [isCreating, setIsCreating] = useState(false);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [customTags, setCustomTags] = useState("");
 
   // Calculate target path - use desktop as fallback
   const baseDir = rootDirectory || path.join(homedir(), "Desktop");
   const targetPath = currentFolder ? path.join(baseDir, currentFolder) : baseDir;
 
-  const handleSubmit = async (values: { 
-    title: string; 
+  const handleSubmit = async (values: {
+    title: string;
     template: string;
     systemTags: string[];
     customTags: string;
@@ -48,12 +46,15 @@ export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: 
 
       // Process system tags
       const systemTags = values.systemTags || [];
-      
+
       // Process custom tags
-      const customTagsList = values.customTags 
-        ? values.customTags.split(",").map(tag => tag.trim()).filter(Boolean)
+      const customTagsList = values.customTags
+        ? values.customTags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
         : [];
-      
+
       // Combine all tags
       const allTags = [...systemTags, ...customTagsList];
 
@@ -100,21 +101,17 @@ export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: 
       </Form.Dropdown>
 
       <Form.TagPicker id="systemTags" title="System Tags">
-        {SYSTEM_TAGS.map(tag => (
-          <Form.TagPicker.Item 
-            key={tag.id} 
-            value={tag.id} 
-            title={tag.label} 
-            icon={{ source: Icon.Circle, tintColor: getTagColor(tag.color) }} 
+        {SYSTEM_TAGS.map((tag) => (
+          <Form.TagPicker.Item
+            key={tag.id}
+            value={tag.id}
+            title={tag.label}
+            icon={{ source: Icon.Circle, tintColor: getTagColor(tag.color) }}
           />
         ))}
       </Form.TagPicker>
 
-      <Form.TextField 
-        id="customTags" 
-        title="Custom Tags" 
-        placeholder="tag1, tag2, tag3" 
-      />
+      <Form.TextField id="customTags" title="Custom Tags" placeholder="tag1, tag2, tag3" />
 
       <Form.Description title="Save Location" text={currentFolder || "Root Directory"} />
     </Form>
@@ -124,11 +121,17 @@ export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: 
 // Helper function to get tag color
 function getTagColor(color: string): Color {
   switch (color.toLowerCase()) {
-    case "red": return Color.Red;
-    case "yellow": return Color.Yellow;
-    case "green": return Color.Green;
-    case "orange": return Color.Orange;
-    case "blue": return Color.Blue;
-    default: return Color.PrimaryText;
+    case "red":
+      return Color.Red;
+    case "yellow":
+      return Color.Yellow;
+    case "green":
+      return Color.Green;
+    case "orange":
+      return Color.Orange;
+    case "blue":
+      return Color.Blue;
+    default:
+      return Color.PrimaryText;
   }
 }

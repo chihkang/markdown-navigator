@@ -1,22 +1,23 @@
-import { List, showToast, Toast, Icon, getPreferenceValues, useNavigation } from "@raycast/api";
+import { List, showToast, Toast, Icon, getPreferenceValues, useNavigation, Color } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
 import { useState, useEffect, useCallback } from "react";
-import fs from "fs"; // Import fs module
+import fs from "fs";
 import { getMarkdownFiles } from "./utils/fileOperations";
-import { getAllUniqueTags } from "./utils/tagOperations";
+import { getAllUniqueTags, isSystemTag, getSystemTag } from "./utils/tagOperations";
 import { groupFilesByFolder } from "./utils/groupOperations";
 import { CreateFileForm } from "./components/CreateFileForm";
 import { FileListItem } from "./components/FileListItem";
 import { PaginationSection } from "./components/PaginationSection";
 import { CommonActions, LoadMoreAction } from "./components/ActionComponents";
 import { MarkdownEmptyView } from "./components/MarkdownEmptyView";
+import { TagSearchList } from "./components/TagSearchList";
 import path from "path";
 
 export const markdownDir = getPreferenceValues<{ markdownDir: string }>().markdownDir;
 
-const ITEMS_PER_PAGE = 20; // Number of items per page
-const INITIAL_LOAD_LIMIT = 50; // Initial load limit
-const LOAD_INCREMENT = 50; // Number of items to load each time
+const ITEMS_PER_PAGE = 20;
+const INITIAL_LOAD_LIMIT = 50;
+const LOAD_INCREMENT = 50;
 
 export default function Command() {
   const { push } = useNavigation();
@@ -25,8 +26,8 @@ export default function Command() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showColorTags, setShowColorTags] = useState(true);
   const [selectedFolder, setSelectedFolder] = useState<string>("");
-  const [loadLimit, setLoadLimit] = useState<number>(INITIAL_LOAD_LIMIT); // Dynamic load limit
-  const [totalFiles, setTotalFiles] = useState<number>(0); // Total file count
+  const [loadLimit, setLoadLimit] = useState<number>(INITIAL_LOAD_LIMIT);
+  const [totalFiles, setTotalFiles] = useState<number>(0);
   const [rootDirectory, setRootDirectory] = useState<string>(markdownDir);
 
   // Validate markdownDir
@@ -38,11 +39,11 @@ export default function Command() {
         message: "Please set a valid directory in preferences.",
       });
     } else {
-      setRootDirectory(markdownDir); // Ensure rootDirectory initial value matches markdownDir
+      setRootDirectory(markdownDir);
     }
   }, [markdownDir]);
 
-  // Initialize total files count separately to ensure it's set correctly
+  // Initialize total files count
   useEffect(() => {
     const getTotalFiles = async () => {
       try {
@@ -57,7 +58,7 @@ export default function Command() {
     getTotalFiles();
   }, []);
 
-  // Define the fetch function with useCallback to use it with usePromise
+  // Define the fetch function
   const fetchMarkdownFiles = useCallback(async () => {
     console.log(`Fetching files with limit: ${loadLimit}`);
     const files = await getMarkdownFiles(loadLimit);
@@ -67,10 +68,10 @@ export default function Command() {
 
   // Get the Markdown files
   const { data, isLoading, error, revalidate } = usePromise(fetchMarkdownFiles, [], {
-    execute: true, // Execute on mount
+    execute: true,
   });
 
-  // Handling Errors
+  // Handle errors
   useEffect(() => {
     if (error) {
       showToast({
@@ -114,7 +115,7 @@ export default function Command() {
       ? `Showing ${startItem}-${endItem} of ${filteredData.length} (Total ${totalFiles} files)`
       : "File not found";
 
-  // Navigate to the Create File form with current folder context
+  // Navigate to the Create File form
   const showCreateFileForm = () => {
     push(<CreateFileForm rootDirectory={rootDirectory} currentFolder={selectedFolder} onFileCreated={revalidate} />);
   };
@@ -154,6 +155,19 @@ export default function Command() {
     }
   };
 
+  // Handle tag selection
+  const handleTagSelect = (tag: string) => {
+    setSelectedTag(tag || null);
+    setCurrentPage(0);
+    console.log("Selected tag:", tag);
+  };
+
+  // Show tag search list
+  const showTagSearchList = () => {
+    console.log("Showing tag search list");
+    push(<TagSearchList tags={allTags} onTagSelect={handleTagSelect} selectedTag={selectedTag} showSections={true} />);
+  };
+
   const commonActionsProps = {
     showCreateFileForm,
     revalidate,
@@ -162,12 +176,13 @@ export default function Command() {
     setShowColorTags,
     selectedTag,
     setSelectedTag,
+    showTagSearchList,
   };
 
   // Common actions for both main view and empty view
   const commonActions = <CommonActions {...commonActionsProps} />;
 
-  // Add a footer section to display load status and provide a load more button
+  // Add a footer section to display load status
   const renderFooter = () => {
     if (loadLimit < totalFiles) {
       return (
@@ -187,25 +202,55 @@ export default function Command() {
       searchBarPlaceholder="Search file name or folder..."
       onSearchTextChange={(text) => {
         setSearchText(text);
-        setCurrentPage(0); // Reset to first page when searching
+        setCurrentPage(0);
         console.log("Search text changed:", text);
       }}
       searchText={searchText}
       navigationTitle={`Markdown files (${filteredData.length} items)`}
       searchBarAccessory={
         allTags.length > 0 ? (
-          <List.Dropdown
-            tooltip="Filter by Tags"
-            value={selectedTag || ""}
-            onChange={(newTag) => {
-              setSelectedTag(newTag);
-              console.log("Selected tag:", newTag);
-            }}
-          >
+          <List.Dropdown tooltip="Filter by Tags" value={selectedTag || ""} onChange={handleTagSelect}>
             <List.Dropdown.Item title="All tags" value="" />
-            {allTags.map((tag) => (
-              <List.Dropdown.Item key={tag} title={`#${tag}`} value={tag} />
-            ))}
+
+            {/* System Tags */}
+            <List.Dropdown.Section title="System Tags">
+              {allTags
+                .filter((tag) => isSystemTag(tag))
+                .map((tag) => {
+                  const systemTag = getSystemTag(tag);
+                  return (
+                    <List.Dropdown.Item
+                      key={tag}
+                      title={`#${tag}`}
+                      value={tag}
+                      icon={{
+                        source: Icon.Circle,
+                        tintColor:
+                          systemTag?.color === "red"
+                            ? Color.Red
+                            : systemTag?.color === "yellow"
+                              ? Color.Yellow
+                              : systemTag?.color === "green"
+                                ? Color.Green
+                                : systemTag?.color === "orange"
+                                  ? Color.Orange
+                                  : systemTag?.color === "blue"
+                                    ? Color.Blue
+                                    : undefined,
+                      }}
+                    />
+                  );
+                })}
+            </List.Dropdown.Section>
+
+            {/* Custom Tags */}
+            <List.Dropdown.Section title="Custom Tags">
+              {allTags
+                .filter((tag) => !isSystemTag(tag))
+                .map((tag) => (
+                  <List.Dropdown.Item key={tag} title={`#${tag}`} value={tag} />
+                ))}
+            </List.Dropdown.Section>
           </List.Dropdown>
         ) : undefined
       }
@@ -242,13 +287,17 @@ export default function Command() {
                   key={file.path}
                   file={file}
                   showColorTags={showColorTags}
+                  setShowColorTags={setShowColorTags}
                   revalidate={revalidate}
                   currentPage={currentPage}
                   totalPages={totalPages}
                   setCurrentPage={setCurrentPage}
                   markdownDir={rootDirectory}
                   loadMoreFiles={loadMoreFiles}
-                  showCreateFileForm={showCreateFileForm} // Pass the function to create files
+                  showCreateFileForm={showCreateFileForm}
+                  showTagSearchList={showTagSearchList} // Add this prop
+                  selectedTag={selectedTag} // Add this prop
+                  setSelectedTag={setSelectedTag} // Add this prop
                 />
               ))}
             </List.Section>

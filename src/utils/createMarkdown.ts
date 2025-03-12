@@ -130,8 +130,8 @@ async function createMarkdownFileHelper({
     const sanitizedTitle = title
       .trim()
       .replace(/[<>:"/\\|?*]/g, "-") // Replace invalid filename characters with hyphens
-      .replace(/-+/g, "-")         // Replace multiple hyphens with a single one
-      .replace(/^-|-$/g, "");      // Remove leading and trailing hyphens
+      .replace(/-+/g, "-") // Replace multiple hyphens with a single one
+      .replace(/^-|-$/g, ""); // Remove leading and trailing hyphens
 
     // If sanitizedTitle is empty after processing, use a default name
     const fileName = sanitizedTitle ? `${sanitizedTitle}.md` : `note-${Date.now()}.md`;
@@ -156,9 +156,9 @@ async function createMarkdownFileHelper({
     let content = templates[template as keyof typeof templates] || templates.basic;
 
     // Format tags - ensure they have # prefix if they don't already
-    const formattedTags = tags.map(tag => {
+    const formattedTags = tags.map((tag) => {
       const trimmedTag = tag.trim();
-      return trimmedTag.startsWith('#') ? trimmedTag : `#${trimmedTag}`;
+      return trimmedTag.startsWith("#") ? trimmedTag : `#${trimmedTag}`;
     });
 
     // Replace placeholders

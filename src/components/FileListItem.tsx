@@ -21,6 +21,7 @@ import { exec } from "child_process";
 interface FileListItemProps {
   file: MarkdownFile;
   showColorTags: boolean;
+  setShowColorTags: (show: boolean) => void;
   revalidate: () => void;
   currentPage: number;
   totalPages: number;
@@ -28,11 +29,15 @@ interface FileListItemProps {
   markdownDir: string;
   loadMoreFiles: () => void;
   showCreateFileForm: () => void;
+  showTagSearchList: () => void;
+  selectedTag: string | null;
+  setSelectedTag: (tag: string | null) => void;
 }
 
 export function FileListItem({
   file,
   showColorTags,
+  setShowColorTags,
   revalidate,
   currentPage,
   totalPages,
@@ -40,6 +45,9 @@ export function FileListItem({
   markdownDir,
   loadMoreFiles,
   showCreateFileForm,
+  showTagSearchList,
+  selectedTag,
+  setSelectedTag,
 }: FileListItemProps) {
   // Format the date
   const formatDate = (date: Date) => {
@@ -147,7 +155,7 @@ export function FileListItem({
 
   // Sort tags with system tags first
   const sortedTags = sortTags(file.tags);
-  
+
   // Limit visible tags
   const visibleTags = sortedTags.slice(0, MAX_VISIBLE_TAGS);
   const hiddenTagsCount = sortedTags.length - visibleTags.length;
@@ -165,28 +173,38 @@ export function FileListItem({
         ...visibleTags.map((tag) => {
           const systemTag = getSystemTag(tag);
           const isSystem = isSystemTag(tag);
-          
+
           return {
             tag: {
               value: tag,
-              color: showColorTags && isSystem
-                ? systemTag?.color === "red" ? Color.Red
-                : systemTag?.color === "yellow" ? Color.Yellow
-                : systemTag?.color === "green" ? Color.Green
-                : systemTag?.color === "orange" ? Color.Orange
-                : systemTag?.color === "blue" ? Color.Blue
-                : undefined
-                : undefined,
+              color:
+                showColorTags && isSystem
+                  ? systemTag?.color === "red"
+                    ? Color.Red
+                    : systemTag?.color === "yellow"
+                      ? Color.Yellow
+                      : systemTag?.color === "green"
+                        ? Color.Green
+                        : systemTag?.color === "orange"
+                          ? Color.Orange
+                          : systemTag?.color === "blue"
+                            ? Color.Blue
+                            : undefined
+                  : undefined,
             },
           };
         }),
-        ...(hiddenTagsCount > 0 ? [{
-          tag: {
-            value: `+${hiddenTagsCount}`,
-            color: Color.SecondaryText,
-          },
-          tooltip: `${hiddenTagsCount} more tags: ${sortedTags.slice(MAX_VISIBLE_TAGS).join(", ")}`,
-        }] : []),
+        ...(hiddenTagsCount > 0
+          ? [
+              {
+                tag: {
+                  value: `+${hiddenTagsCount}`,
+                  color: Color.SecondaryText,
+                },
+                tooltip: `${hiddenTagsCount} more tags: ${sortedTags.slice(MAX_VISIBLE_TAGS).join(", ")}`,
+              },
+            ]
+          : []),
       ]}
       actions={
         <ActionPanel>
@@ -227,6 +245,30 @@ export function FileListItem({
               icon={Icon.Plus}
               shortcut={{ modifiers: ["cmd", "shift"], key: "m" }}
               onAction={loadMoreFiles}
+            />
+          </ActionPanel.Section>
+
+          {/* Add Tag Management Section */}
+          <ActionPanel.Section>
+            <Action
+              title="Browse Tags"
+              icon={Icon.Tag}
+              shortcut={{ modifiers: ["cmd"], key: "t" }}
+              onAction={showTagSearchList}
+            />
+            {selectedTag && (
+              <Action
+                title="Clear Tag Filter"
+                icon={Icon.XMarkCircle}
+                shortcut={{ modifiers: ["cmd", "shift"], key: "t" }}
+                onAction={() => setSelectedTag(null)}
+              />
+            )}
+            <Action
+              title={showColorTags ? "Hide Colored Tags" : "Show Colored Tags"}
+              icon={showColorTags ? Icon.EyeDisabled : Icon.Eye}
+              shortcut={{ modifiers: ["cmd"], key: "e" }}
+              onAction={() => setShowColorTags(!showColorTags)}
             />
           </ActionPanel.Section>
 
