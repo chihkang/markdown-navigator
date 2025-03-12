@@ -1,4 +1,4 @@
-import { ActionPanel, Action, List, showToast, Toast, Icon, getPreferenceValues, useNavigation } from "@raycast/api";
+import { List, showToast, Toast, Icon, getPreferenceValues, useNavigation } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
 import { useState, useEffect, useCallback } from "react";
 import fs from "fs"; // Import fs module
@@ -8,6 +8,7 @@ import { getAllUniqueTags } from "./utils/tagOperations";
 import { CreateFileForm } from "./components/CreateFileForm";
 import { FileListItem } from "./components/FileListItem";
 import { PaginationSection } from "./components/PaginationSection";
+import { CommonActions, LoadMoreAction } from "./components/ActionComponents";
 import path from "path";
 
 export const markdownDir = getPreferenceValues<{ markdownDir: string }>().markdownDir;
@@ -151,49 +152,17 @@ export default function Command() {
       });
     }
   };
-
+  const commonActionsProps = {
+    showCreateFileForm,
+    revalidate,
+    loadMoreFiles,
+    showColorTags,
+    setShowColorTags,
+    selectedTag,
+    setSelectedTag,
+  };
   // Common actions for both main view and empty view
-  const commonActions = (
-    <ActionPanel>
-      <ActionPanel.Section>
-        <Action
-          title="Create a New Markdown File"
-          icon={Icon.NewDocument}
-          shortcut={{ modifiers: ["cmd"], key: "n" }}
-          onAction={showCreateFileForm}
-        />
-        <Action
-          title="Refresh List"
-          icon={Icon.RotateClockwise}
-          shortcut={{ modifiers: ["cmd"], key: "r" }}
-          onAction={revalidate}
-        />
-        <Action
-          title="Load More Files"
-          icon={Icon.Plus}
-          shortcut={{ modifiers: ["cmd", "shift"], key: "m" }}
-          onAction={loadMoreFiles}
-        />
-      </ActionPanel.Section>
-
-      <ActionPanel.Section>
-        <Action
-          title={showColorTags ? "Hide Color Labels" : "Show Color Labels"}
-          icon={showColorTags ? Icon.EyeDisabled : Icon.Eye}
-          shortcut={{ modifiers: ["cmd", "shift"], key: "t" }}
-          onAction={() => setShowColorTags(!showColorTags)}
-        />
-        {selectedTag && (
-          <Action
-            title="Clear Tag Filter"
-            icon={Icon.XMarkCircle}
-            shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-            onAction={() => setSelectedTag(null)}
-          />
-        )}
-      </ActionPanel.Section>
-    </ActionPanel>
-  );
+  const commonActions = <CommonActions {...commonActionsProps} />;
 
   // Add a footer section to display load status and provide a load more button
   const renderFooter = () => {
@@ -202,16 +171,7 @@ export default function Command() {
         <List.Item
           title={`Loaded ${loadLimit} of ${totalFiles} files`}
           icon={Icon.Plus}
-          actions={
-            <ActionPanel>
-              <Action
-                title="Load More Files"
-                icon={Icon.Plus}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "m" }}
-                onAction={loadMoreFiles}
-              />
-            </ActionPanel>
-          }
+          actions={<LoadMoreAction loadMoreFiles={loadMoreFiles} />}
         />
       );
     }
