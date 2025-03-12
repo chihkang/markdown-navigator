@@ -126,9 +126,9 @@ async function createMarkdownFileHelper({
     // Use targetPath if provided, otherwise use Desktop as fallback
     const baseDir = targetPath || path.join(homedir(), "Desktop");
 
-    // Create filename from title
+    // Create filename from title - only replace invalid characters
     const sanitizedTitle = title
-      .trim()                      // Remove leading/trailing whitespace
+      .trim()
       .replace(/[<>:"/\\|?*]/g, "-") // Replace invalid filename characters with hyphens
       .replace(/-+/g, "-")         // Replace multiple hyphens with a single one
       .replace(/^-|-$/g, "");      // Remove leading and trailing hyphens
@@ -155,10 +155,15 @@ async function createMarkdownFileHelper({
     // Get template content
     let content = templates[template as keyof typeof templates] || templates.basic;
 
+    // Format tags - ensure they have # prefix if they don't already
+    const formattedTags = tags.map(tag => {
+      const trimmedTag = tag.trim();
+      return trimmedTag.startsWith('#') ? trimmedTag : `#${trimmedTag}`;
+    });
+
     // Replace placeholders
     const now = new Date();
     const formattedDate = now.toISOString().split("T")[0];
-    const formattedTags = tags.map((tag) => (tag.startsWith("#") ? tag : `#${tag}`));
     content = content
       .replace(/{{title}}/g, title)
       .replace(/{{date}}/g, formattedDate)

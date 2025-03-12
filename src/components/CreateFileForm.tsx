@@ -1,9 +1,10 @@
 // src/components/CreateFileForm.tsx
-import { Form, ActionPanel, Action, showToast, Toast, useNavigation } from "@raycast/api";
+import { Form, ActionPanel, Action, showToast, Toast, useNavigation, Icon, Color } from "@raycast/api";
 import { useState } from "react";
 import createMarkdown from "../utils/createMarkdown";
 import path from "path";
 import { homedir } from "os";
+import { SYSTEM_TAGS } from "../types/markdownTypes";
 
 interface CreateFileFormProps {
   rootDirectory: string;
@@ -14,12 +15,19 @@ interface CreateFileFormProps {
 export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: CreateFileFormProps) {
   const { pop } = useNavigation();
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [customTags, setCustomTags] = useState("");
 
   // Calculate target path - use desktop as fallback
   const baseDir = rootDirectory || path.join(homedir(), "Desktop");
   const targetPath = currentFolder ? path.join(baseDir, currentFolder) : baseDir;
 
-  const handleSubmit = async (values: { title: string; tags: string; template: string }) => {
+  const handleSubmit = async (values: { 
+    title: string; 
+    template: string;
+    systemTags: string[];
+    customTags: string;
+  }) => {
     if (!values.title) {
       await showToast({
         style: Toast.Style.Failure,
@@ -38,13 +46,22 @@ export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: 
         message: `Path: ${targetPath}`,
       });
 
-      const tags = values.tags ? values.tags.split(",").map((tag) => tag.trim()) : [];
+      // Process system tags
+      const systemTags = values.systemTags || [];
+      
+      // Process custom tags
+      const customTagsList = values.customTags 
+        ? values.customTags.split(",").map(tag => tag.trim()).filter(Boolean)
+        : [];
+      
+      // Combine all tags
+      const allTags = [...systemTags, ...customTagsList];
 
       // Create a Markdown file and open it with Typora
       const result = await createMarkdown({
         title: values.title,
         template: values.template,
-        tags,
+        tags: allTags,
         targetPath,
       });
 
@@ -82,9 +99,36 @@ export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: 
         <Form.Dropdown.Item value="empty" title="Empty File" />
       </Form.Dropdown>
 
-      <Form.TextField id="tags" title="Tags" placeholder="#tag1, #tag2, #tag3" />
+      <Form.TagPicker id="systemTags" title="System Tags">
+        {SYSTEM_TAGS.map(tag => (
+          <Form.TagPicker.Item 
+            key={tag.id} 
+            value={tag.id} 
+            title={tag.label} 
+            icon={{ source: Icon.Circle, tintColor: getTagColor(tag.color) }} 
+          />
+        ))}
+      </Form.TagPicker>
+
+      <Form.TextField 
+        id="customTags" 
+        title="Custom Tags" 
+        placeholder="tag1, tag2, tag3" 
+      />
 
       <Form.Description title="Save Location" text={currentFolder || "Root Directory"} />
     </Form>
   );
+}
+
+// Helper function to get tag color
+function getTagColor(color: string): Color {
+  switch (color.toLowerCase()) {
+    case "red": return Color.Red;
+    case "yellow": return Color.Yellow;
+    case "green": return Color.Green;
+    case "orange": return Color.Orange;
+    case "blue": return Color.Blue;
+    default: return Color.PrimaryText;
+  }
 }

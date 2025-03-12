@@ -1,13 +1,24 @@
-// src/types/index.ts
+// src/types/markdownTypes.ts
 export interface MarkdownFile {
-  path: string;
   name: string;
+  path: string;
   lastModified: Date;
-  folder: string;
   tags: string[];
+  size: number;
 }
 
-export interface CreateFileFormValues {
-  title: string;
-  tags: string;
+export interface SystemTag {
+  id: string;
+  label: string;
+  color: string;
 }
+
+export const SYSTEM_TAGS: SystemTag[] = [
+  { id: "important", label: "Important", color: "red" },
+  { id: "draft", label: "Draft", color: "yellow" },
+  { id: "complete", label: "Complete", color: "green" },
+  { id: "review", label: "Review", color: "orange" },
+  { id: "archive", label: "Archive", color: "blue" }
+];
+
+export const MAX_VISIBLE_TAGS = 3;

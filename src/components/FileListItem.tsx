@@ -1,4 +1,4 @@
-// components/FileListItem.tsx
+// src/components/FileListItem.tsx
 import {
   List,
   ActionPanel,
@@ -11,8 +11,9 @@ import {
   Toast,
   openCommandPreferences,
 } from "@raycast/api";
-import { MarkdownFile } from "../types/markdownTypes";
+import { MarkdownFile, MAX_VISIBLE_TAGS } from "../types/markdownTypes";
 import { openWithEditor, moveToTrash } from "../utils/fileOperations";
+import { isSystemTag, getSystemTag, sortTags } from "../utils/tagOperations";
 import path from "path";
 import fs from "fs";
 import { exec } from "child_process";
@@ -40,11 +41,6 @@ export function FileListItem({
   loadMoreFiles,
   showCreateFileForm,
 }: FileListItemProps) {
-  // Debug logging
-  console.log("File:", file.name);
-  console.log("Tags:", file.tags);
-  console.log("showColorTags:", showColorTags);
-
   // Format the date
   const formatDate = (date: Date) => {
     const now = new Date();
@@ -149,6 +145,13 @@ export function FileListItem({
     </>
   );
 
+  // Sort tags with system tags first
+  const sortedTags = sortTags(file.tags);
+  
+  // Limit visible tags
+  const visibleTags = sortedTags.slice(0, MAX_VISIBLE_TAGS);
+  const hiddenTagsCount = sortedTags.length - visibleTags.length;
+
   return (
     <List.Item
       id={file.path}
@@ -159,36 +162,31 @@ export function FileListItem({
           text: formatDate(file.lastModified),
           tooltip: `Last modified: ${file.lastModified.toLocaleString()}`,
         },
-        ...file.tags.map((tag) => {
-          console.log(`Processing tag: "${tag}"`);
-          
-          // Check if any of our keywords are in the tag
-          const hasImportant = tag.toLowerCase().includes("important");
-          const hasDraft = tag.toLowerCase().includes("draft");
-          const hasComplete = tag.toLowerCase().includes("complete");
-          const hasReview = tag.toLowerCase().includes("review");
-          const hasArchive = tag.toLowerCase().includes("archive");
-          
-          console.log(`Tag "${tag}" contains: important=${hasImportant}, draft=${hasDraft}, complete=${hasComplete}, review=${hasReview}, archive=${hasArchive}`);
-          
-          let tagColor = undefined;
-          if (showColorTags) {
-            if (hasImportant) tagColor = Color.Red;
-            else if (hasDraft) tagColor = Color.Yellow;
-            else if (hasComplete) tagColor = Color.Green;
-            else if (hasReview) tagColor = Color.Orange;
-            else if (hasArchive) tagColor = Color.Blue;
-          }
-          
-          console.log(`Tag "${tag}" color: ${tagColor || "none"}`);
+        ...visibleTags.map((tag) => {
+          const systemTag = getSystemTag(tag);
+          const isSystem = isSystemTag(tag);
           
           return {
             tag: {
               value: tag,
-              color: tagColor,
+              color: showColorTags && isSystem
+                ? systemTag?.color === "red" ? Color.Red
+                : systemTag?.color === "yellow" ? Color.Yellow
+                : systemTag?.color === "green" ? Color.Green
+                : systemTag?.color === "orange" ? Color.Orange
+                : systemTag?.color === "blue" ? Color.Blue
+                : undefined
+                : undefined,
             },
           };
         }),
+        ...(hiddenTagsCount > 0 ? [{
+          tag: {
+            value: `+${hiddenTagsCount}`,
+            color: Color.SecondaryText,
+          },
+          tooltip: `${hiddenTagsCount} more tags: ${sortedTags.slice(MAX_VISIBLE_TAGS).join(", ")}`,
+        }] : []),
       ]}
       actions={
         <ActionPanel>
