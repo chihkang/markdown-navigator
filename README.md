@@ -42,8 +42,8 @@ The extension requires a valid Markdown directory to be set in preferences:
 ### File Actions
 
 - **Open with Typora**: Select a file and press `Enter`
-- **Open in Default App**: Press `⌘` + `O`
-- **Open With...**: Press `⌘` + `⇧` + `O` to choose an application
+- **Open in Default App**: Press `⏎`
+- **Open With...**: Press⏎ `⌘` + `⇧` + `O` to choose an application
 - **Show in Finder**: Press `⌘` + `F`
 - **Copy Path**: Press `⌘` + `⇧` + `C`
 - **Move to Trash**: Press `⌃` + `X`
@@ -69,12 +69,32 @@ The extension requires a valid Markdown directory to be set in preferences:
   - Press `⌘` + `N` while browsing to create a file in the current context
   - Templates automatically include current date and specified tags
 
-
 ### Tag Management
 
-- **Filter by Tags**: Use the dropdown in the search bar to filter by tags
-- **Toggle Color Tags**: Press `⌘` + `⇧` + `T` to show/hide color-coded tags
-- **Clear Tag Filter**: Press `⌘` + `⇧` + `C` when a tag is selected
+- **Smart Tag Extraction**: Tags are automatically extracted from:
+  - Inline hashtags in Markdown content (`#tag`)
+  - YAML frontmatter tags (`tags: [tag1, tag2]` or `tags: tag1, tag2`)
+  - Supports both English and Chinese tags
+
+- **System Tags vs. Custom Tags**: Tags are categorized into:
+  - **System Tags**: Pre-defined tags with color coding for quick visual identification
+    - Important (Red)
+    - Draft (Yellow)
+    - Complete (Green)
+    - Review (Orange)
+    - Archive (Blue)
+  - **Custom Tags**: User-defined tags for personal organization
+
+- **Tag Filtering Options**:
+  - **Dropdown Filter**: Use the dropdown in the search bar to filter by system or custom tags
+  - **Browse Tags**: Press `⌘` + `T` to open a dedicated tag search interface with sections
+  - **Toggle Color Tags**: Press `⌘` + `E` to show/hide color-coded tags
+  - **Clear Tag Filter**: Press `⌘` + `⇧` + `T` when a tag is selected to clear the filter
+
+- **Tag Visualization**:
+  - Color-coded icons for system tags
+  - Organized sections for system and custom tags in the tag search view
+  - Tag counts displayed in the interface
 
 ### Other Actions
 
@@ -86,9 +106,10 @@ The extension requires a valid Markdown directory to be set in preferences:
 
 The extension initially loads a limited number of files for better performance. If you have a large collection of Markdown files, you can:
 
-1. Use the "Load More Files" action to progressively load more files
+1. Use the "Load More Files" action to progressively load more files (initially loads 50 files, with increments of 50)
 2. Use search and tag filtering to narrow down results
-3. Navigate through pages to browse all loaded files
+3. Navigate through pages to browse all loaded files (20 files per page)
+4. View the loading status in the footer to see how many files are loaded
 
 ## Requirements
 
@@ -103,3 +124,4 @@ If you encounter any issues or have suggestions for improvements, please submit 
 ## License
 
 MIT
+
