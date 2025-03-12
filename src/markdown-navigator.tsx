@@ -23,7 +23,7 @@ export default function Command() {
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [showColorTags, setShowColorTags] = useState(false);
+  const [showColorTags, setShowColorTags] = useState(true);
   const [selectedFolder, setSelectedFolder] = useState<string>("");
   const [loadLimit, setLoadLimit] = useState<number>(INITIAL_LOAD_LIMIT); // Dynamic load limit
   const [totalFiles, setTotalFiles] = useState<number>(0); // Total file count

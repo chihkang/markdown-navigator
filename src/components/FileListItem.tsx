@@ -40,6 +40,11 @@ export function FileListItem({
   loadMoreFiles,
   showCreateFileForm,
 }: FileListItemProps) {
+  // Debug logging
+  console.log("File:", file.name);
+  console.log("Tags:", file.tags);
+  console.log("showColorTags:", showColorTags);
+
   // Format the date
   const formatDate = (date: Date) => {
     const now = new Date();
@@ -154,24 +159,36 @@ export function FileListItem({
           text: formatDate(file.lastModified),
           tooltip: `Last modified: ${file.lastModified.toLocaleString()}`,
         },
-        ...file.tags.map((tag) => ({
-          tag: {
-            value: tag,
-            color: showColorTags
-              ? tag.toLowerCase().replace(/^#/, '').includes("important")
-                ? Color.Red
-                : tag.toLowerCase().replace(/^#/, '').includes("draft")
-                  ? Color.Yellow
-                  : tag.toLowerCase().replace(/^#/, '').includes("complete")
-                    ? Color.Green
-                    : tag.toLowerCase().replace(/^#/, '').includes("review")
-                      ? Color.Orange
-                      : tag.toLowerCase().replace(/^#/, '').includes("archive")
-                        ? Color.Blue
-                        : undefined
-              : undefined,
-          },          
-        })),
+        ...file.tags.map((tag) => {
+          console.log(`Processing tag: "${tag}"`);
+          
+          // Check if any of our keywords are in the tag
+          const hasImportant = tag.toLowerCase().includes("important");
+          const hasDraft = tag.toLowerCase().includes("draft");
+          const hasComplete = tag.toLowerCase().includes("complete");
+          const hasReview = tag.toLowerCase().includes("review");
+          const hasArchive = tag.toLowerCase().includes("archive");
+          
+          console.log(`Tag "${tag}" contains: important=${hasImportant}, draft=${hasDraft}, complete=${hasComplete}, review=${hasReview}, archive=${hasArchive}`);
+          
+          let tagColor = undefined;
+          if (showColorTags) {
+            if (hasImportant) tagColor = Color.Red;
+            else if (hasDraft) tagColor = Color.Yellow;
+            else if (hasComplete) tagColor = Color.Green;
+            else if (hasReview) tagColor = Color.Orange;
+            else if (hasArchive) tagColor = Color.Blue;
+          }
+          
+          console.log(`Tag "${tag}" color: ${tagColor || "none"}`);
+          
+          return {
+            tag: {
+              value: tag,
+              color: tagColor,
+            },
+          };
+        }),
       ]}
       actions={
         <ActionPanel>
