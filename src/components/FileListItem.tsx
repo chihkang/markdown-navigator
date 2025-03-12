@@ -10,7 +10,6 @@ import {
   showToast,
   Toast,
   openCommandPreferences,
-  trash,
 } from "@raycast/api";
 import { MarkdownFile } from "../types/markdownTypes";
 import { openWithEditor, moveToTrash } from "../utils/fileOperations";
@@ -159,19 +158,19 @@ export function FileListItem({
           tag: {
             value: tag,
             color: showColorTags
-              ? tag.toLowerCase().includes("important")
+              ? tag.toLowerCase().replace(/^#/, '').includes("important")
                 ? Color.Red
-                : tag.toLowerCase().includes("draft")
+                : tag.toLowerCase().replace(/^#/, '').includes("draft")
                   ? Color.Yellow
-                  : tag.toLowerCase().includes("complete")
+                  : tag.toLowerCase().replace(/^#/, '').includes("complete")
                     ? Color.Green
-                    : tag.toLowerCase().includes("review")
+                    : tag.toLowerCase().replace(/^#/, '').includes("review")
                       ? Color.Orange
-                      : tag.toLowerCase().includes("archive")
+                      : tag.toLowerCase().replace(/^#/, '').includes("archive")
                         ? Color.Blue
                         : undefined
               : undefined,
-          },
+          },          
         })),
       ]}
       actions={

@@ -38,7 +38,7 @@ export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: 
         message: `Path: ${targetPath}`,
       });
 
-      const tags = values.tags ? values.tags.split(",").map(tag => tag.trim()) : [];
+      const tags = values.tags ? values.tags.split(",").map((tag) => tag.trim()) : [];
 
       // Create a Markdown file and open it with Typora
       const result = await createMarkdown({
