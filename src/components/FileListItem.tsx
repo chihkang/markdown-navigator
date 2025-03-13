@@ -11,7 +11,7 @@ import {
   Toast,
   openCommandPreferences,
 } from "@raycast/api";
-import { MarkdownFile, MAX_VISIBLE_TAGS } from "../types/markdownTypes";
+import { MarkdownFile } from "../types/markdownTypes";
 import { openWithEditor, moveToTrash } from "../utils/fileOperations";
 import { isSystemTag, getSystemTag, sortTags, filterDisplayTags } from "../utils/tagOperations";
 import path from "path";
@@ -36,6 +36,46 @@ interface FileListItemProps {
   selectedTag: string | null;
   setSelectedTag: (tag: string | null) => void;
 }
+
+// 定義最大顯示長度（可根據實際 UI 需求調整）
+const MAX_DISPLAY_LENGTH = 15;
+
+// 計算可顯示的標籤
+const getVisibleTags = (tags: string[] | undefined, maxDisplayLength: number): { visible: string[]; hiddenCount: number } => {
+  // 如果 tags 為 undefined，預設為空陣列
+  const safeTags = tags || [];
+  
+  // 按長度排序標籤，最短的優先
+  const sortedTags = [...safeTags].sort((a, b) => a.length - b.length);
+
+  // 如果連最短的標籤都超過最大顯示長度，直接返回 "+N"
+  if (sortedTags.length > 0 && sortedTags[0].length > maxDisplayLength) {
+    return { visible: [], hiddenCount: sortedTags.length };
+  }
+
+  let visible: string[] = [];
+  let currentLength = 0;
+
+  // 至少顯示一個最短的標籤（如果有）
+  for (const tag of sortedTags) {
+    const tagLength = tag.length;
+    if (currentLength === 0 || currentLength + tagLength <= maxDisplayLength) {
+      visible.push(tag);
+      currentLength += tagLength;
+    } else {
+      break;
+    }
+  }
+
+  const hiddenCount = safeTags.length - visible.length;
+  return { visible, hiddenCount };
+};
+
+// 截斷標籤（如果需要）
+const truncateTag = (tag: string, maxLength: number): string => {
+  if (tag.length <= maxLength) return tag;
+  return `${tag.substring(0, maxLength - 1)}…`;
+};
 
 export function FileListItem({
   file,
@@ -136,17 +176,16 @@ export function FileListItem({
   );
 
   // Filter tags before sorting and rendering
-  const filteredTags = filterDisplayTags(file.tags, showColorTags);
+  const filteredTags = filterDisplayTags(file.tags, showColorTags) || [];
   console.log(`Filtered tags for ${file.name}:`, filteredTags); // Log filtered tags
 
   // Sort tags with system tags first
   const sortedTags = sortTags(filteredTags);
 
-  // Limit visible tags
-  const visibleTags = sortedTags.slice(0, MAX_VISIBLE_TAGS);
-  const hiddenTagsCount = sortedTags.length - visibleTags.length;
+  // Get visible tags dynamically
+  const { visible, hiddenCount } = getVisibleTags(sortedTags, MAX_DISPLAY_LENGTH);
 
-  console.log(`Rendering tags for ${file.name}:`, visibleTags); // Log tags being rendered
+  console.log(`Rendering tags for ${file.name}:`, visible); // Log tags being rendered
 
   // Create a Date object from the timestamp for the tooltip
   const lastModifiedDate = new Date(file.lastModified);
@@ -161,30 +200,31 @@ export function FileListItem({
           text: formatDate(file.lastModified),
           tooltip: `Last modified: ${lastModifiedDate.toLocaleString()}`,
         },
-        ...visibleTags
+        ...visible
           .filter((tag) => tag && typeof tag === "string" && tag.length > 0)
           .map((tag) => {
             const systemTag = getSystemTag(tag);
             const isSystem = isSystemTag(tag);
 
-            // Truncate tags to 15 characters to avoid rendering issues
-            const truncatedTag = tag.length > 15 ? `${tag.substring(0, 12)}…` : tag;
+            // Truncate tag if necessary
+            const truncatedTag = truncateTag(tag, MAX_DISPLAY_LENGTH);
 
             return {
               tag: {
                 value: truncatedTag,
+                tooltip: tag, // Show full tag on hover
                 color: showColorTags && isSystem ? getTagTintColor(isSystem, systemTag) : undefined,
               },
             };
           }),
-        ...(hiddenTagsCount > 0
+        ...(hiddenCount > 0
           ? [
               {
                 tag: {
-                  value: `+${hiddenTagsCount}`,
+                  value: `+${hiddenCount}`,
                   color: Color.SecondaryText,
                 },
-                tooltip: `${hiddenTagsCount} more tags: ${sortedTags.slice(MAX_VISIBLE_TAGS).join(", ")}`,
+                tooltip: `${hiddenCount} more tags: ${sortedTags.slice(visible.length).join(", ")}`,
               },
             ]
           : []),
