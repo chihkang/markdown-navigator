@@ -9,20 +9,44 @@ interface TagSearchListProps {
   showSections?: boolean;
 }
 
+interface TagsAccumulator {
+  systemTags: string[];
+  customTags: string[];
+}
+
+const TAG_COLOR_MAP: Record<string, Color> = {
+  red: Color.Red,
+  yellow: Color.Yellow,
+  green: Color.Green,
+  orange: Color.Orange,
+  blue: Color.Blue,
+};
+
+function getTagTintColor(isSystem: boolean, systemTag?: { color?: string }): Color {
+  if (!isSystem) {
+    return Color.SecondaryText;
+  }
+  
+  return TAG_COLOR_MAP[systemTag?.color || ""] || Color.PrimaryText;
+}
+
 export function TagSearchList({ tags, onTagSelect, selectedTag, showSections = true }: TagSearchListProps) {
   const { pop } = useNavigation();
-  console.log("TagSearchList rendered with tags:", tags);
-  console.log("Selected tag:", selectedTag);
-  console.log("Show sections:", showSections);
 
   // Separate system tags and custom tags
-  const systemTags = tags.filter((tag) => isSystemTag(tag));
-  const customTags = tags.filter((tag) => !isSystemTag(tag));
+  const { systemTags, customTags } = tags.reduce<TagsAccumulator>(
+    (acc, tag) => {
+      if (isSystemTag(tag)) {
+        acc.systemTags.push(tag);
+      } else {
+        acc.customTags.push(tag);
+      }
+      return acc;
+    },
+    { systemTags: [], customTags: [] },
+  );
 
-  console.log("System tags:", systemTags);
-  console.log("Custom tags:", customTags);
-
-  // Process tab selection and return to main page
+  // Process tag selection and return to main page
   const handleTagSelection = (tag: string) => {
     onTagSelect(tag);
     pop();
@@ -92,27 +116,13 @@ function renderTagItem(tag: string, isSystem: boolean, onTagSelect: (tag: string
   const systemTag = isSystem ? getSystemTag(tag) : undefined;
   const isSelected = selectedTag === tag;
 
-  console.log(`Rendering tag: ${tag}, isSystem: ${isSystem}, systemTag:`, systemTag);
-
   return (
     <List.Item
       key={tag}
       title={`#${tag}`}
       icon={{
         source: isSelected ? Icon.CheckCircle : Icon.Tag,
-        tintColor: isSystem
-          ? systemTag?.color === "red"
-            ? Color.Red
-            : systemTag?.color === "yellow"
-              ? Color.Yellow
-              : systemTag?.color === "green"
-                ? Color.Green
-                : systemTag?.color === "orange"
-                  ? Color.Orange
-                  : systemTag?.color === "blue"
-                    ? Color.Blue
-                    : Color.PrimaryText
-          : Color.SecondaryText,
+        tintColor: getTagTintColor(isSystem, systemTag),
       }}
       accessories={[
         {

@@ -15,18 +15,12 @@ export const isNumericTag = (tag: string): boolean => {
 
 // Check if a tag is a system tag
 export const isSystemTag = (tag: string): boolean => {
-  return SYSTEM_TAGS.some(
-    (systemTag) =>
-      tag.toLowerCase() === systemTag.id.toLowerCase(),
-  );
+  return SYSTEM_TAGS.some((systemTag) => tag.toLowerCase() === systemTag.id.toLowerCase());
 };
 
 // Get system tag by tag name
 export const getSystemTag = (tag: string): SystemTag | undefined => {
-  return SYSTEM_TAGS.find(
-    (systemTag) =>
-      tag.toLowerCase() === systemTag.id.toLowerCase(),
-  );
+  return SYSTEM_TAGS.find((systemTag) => tag.toLowerCase() === systemTag.id.toLowerCase());
 };
 
 // Function to extract tags from the file

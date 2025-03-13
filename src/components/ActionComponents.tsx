@@ -53,7 +53,7 @@ export function CommonActions({
   );
 }
 
-export function LoadMoreAction({ loadMoreFiles }: { loadMoreFiles: () => void }) {
+export function LoadMoreAction({ loadMoreFiles }: Pick<CommonActionsProps, 'loadMoreFiles'>) {
   return (
     <ActionPanel>
       <Action title="Load More Files" icon={Icon.Plus} onAction={loadMoreFiles} />

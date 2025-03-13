@@ -136,7 +136,7 @@ export async function getMarkdownFiles(limit?: number): Promise<MarkdownFile[]> 
       console.error("Alternative method also failed:", fallbackError);
       showFailureToast({
         title: "Failed to load Markdown files",
-        message: "Both mdfind and find commands failed. Check console for details."
+        message: "Both mdfind and find commands failed. Check console for details.",
       });
       return [];
     }
@@ -164,7 +164,7 @@ export async function openWithEditor(filePath: string) {
     console.error(`Error opening file using ${getDefaultEditor()}:`, error);
     showFailureToast({
       title: "Unable to open file",
-      message: `Make sure ${getDefaultEditor()} is installed or change your default editor in preferences.`
+      message: `Make sure ${getDefaultEditor()} is installed or change your default editor in preferences.`,
     });
   }
 }
@@ -189,7 +189,7 @@ export const openInEditorWithSize = (filePath: string) => {
       if (error) {
         showFailureToast({
           title: "Cannot open Typora",
-          message: "Please make sure Typora is installed and supports AppleScript"
+          message: "Please make sure Typora is installed and supports AppleScript",
         });
       }
     });
@@ -212,7 +212,7 @@ export const createMarkdownFile = (filePath: string, content: string): boolean =
     if (fs.existsSync(filePath)) {
       showFailureToast({
         title: "File already exists",
-        message: `${path.basename(filePath)} already exists in the directory`
+        message: `${path.basename(filePath)} already exists in the directory`,
       });
       return false;
     }
@@ -223,7 +223,7 @@ export const createMarkdownFile = (filePath: string, content: string): boolean =
   } catch (error) {
     showFailureToast({
       title: "Error creating file",
-      message: error instanceof Error ? error.message : "An unknown error occurred"
+      message: error instanceof Error ? error.message : "An unknown error occurred",
     });
     return false;
   }

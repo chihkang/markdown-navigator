@@ -42,7 +42,6 @@ export default function Command() {
     }
   }, [markdownDir]);
 
-
   // Initialize total files count
   useEffect(() => {
     const getTotalFiles = async () => {
@@ -51,7 +50,7 @@ export default function Command() {
           console.log("Invalid markdown directory, skipping file count");
           return;
         }
-        
+
         const allFiles = await getMarkdownFiles();
         setTotalFiles(allFiles.length);
         console.log(`Total files in ${markdownDir}: ${allFiles.length}`);
@@ -59,10 +58,9 @@ export default function Command() {
         console.error(`Error getting total files from ${markdownDir}:`, error);
       }
     };
-  
+
     getTotalFiles();
   }, [markdownDir]);
-  
 
   // Define the fetch function
   const fetchMarkdownFiles = useCallback(async () => {
@@ -101,11 +99,11 @@ export default function Command() {
   // Filtering and paging data
   const filteredData = data
     ? data.filter(
-      (file) =>
-        (file.name.toLowerCase().includes(searchText.toLowerCase()) ||
-          file.folder.toLowerCase().includes(searchText.toLowerCase())) &&
-        (!selectedTag || file.tags.includes(selectedTag)),
-    )
+        (file) =>
+          (file.name.toLowerCase().includes(searchText.toLowerCase()) ||
+            file.folder.toLowerCase().includes(searchText.toLowerCase())) &&
+          (!selectedTag || file.tags.includes(selectedTag)),
+      )
     : [];
   console.log("Filtered data count:", filteredData.length);
 
@@ -135,12 +133,11 @@ export default function Command() {
       const firstFilePath = data[0].path;
       const folderPath = path.dirname(firstFilePath);
       const newRootDirectory = folderPath === markdownDir ? markdownDir : folderPath;
-      
+
       setRootDirectory(newRootDirectory);
       console.log("Set root directory:", newRootDirectory);
     }
   }, [data, rootDirectory, markdownDir]);
-  
 
   // Load more files action
   const loadMoreFiles = () => {
@@ -148,7 +145,7 @@ export default function Command() {
       setLoadLimit((prevLimit) => {
         const newLimit = prevLimit + LOAD_INCREMENT;
         console.log(`Increasing load limit from ${prevLimit} to ${newLimit}`);
-        
+
         // 在狀態更新後顯示 Toast
         setTimeout(() => {
           showToast({
@@ -157,7 +154,7 @@ export default function Command() {
             message: `Increasing limit from ${prevLimit} to ${newLimit}`,
           });
         }, 0);
-        
+
         return newLimit;
       });
     } else {
@@ -168,7 +165,6 @@ export default function Command() {
       });
     }
   };
-  
 
   // Handle tag selection
   const handleTagSelect = (tag: string) => {
