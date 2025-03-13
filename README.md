@@ -1,6 +1,9 @@
 # Markdown Navigator
 
-![extension-icon](./assets/extension-icon.png)
+<p align="center">
+  <img src="./assets/extension-icon.png" width="128" height="128" alt="Markdown Navigator icon">
+</p>
+
 
 A powerful Raycast extension for managing and navigating your Markdown files with ease.
 
