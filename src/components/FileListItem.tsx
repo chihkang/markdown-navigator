@@ -19,6 +19,7 @@ import fs from "fs";
 import { exec } from "child_process";
 import { showFailureToast } from "@raycast/utils";
 import { formatDate } from "../utils/dateUtils";
+import { getTagTintColor } from "../utils/tagColorUtils";
 
 interface FileListItemProps {
   file: MarkdownFile;
@@ -34,22 +35,6 @@ interface FileListItemProps {
   showTagSearchList: () => void;
   selectedTag: string | null;
   setSelectedTag: (tag: string | null) => void;
-}
-
-const TAG_COLOR_MAP: Record<string, Color> = {
-  red: Color.Red,
-  yellow: Color.Yellow,
-  green: Color.Green,
-  orange: Color.Orange,
-  blue: Color.Blue,
-};
-
-function getTagTintColor(isSystem: boolean, systemTag?: { color?: string }): Color {
-  if (!isSystem) {
-    return Color.SecondaryText;
-  }
-
-  return TAG_COLOR_MAP[systemTag?.color || ""] || Color.PrimaryText;
 }
 
 export function FileListItem({

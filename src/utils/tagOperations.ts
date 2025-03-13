@@ -55,11 +55,11 @@ export const extractTags = (filePath: string): string[] => {
     }
 
     // Remove duplicates and return
-    return [...new Set(tags)].filter(Boolean);
+    return Array.from(new Set(tags.filter(Boolean)));
   } catch (error) {
     showFailureToast({
       title: `Error extracting tags from ${filePath}`,
-      message: error instanceof Error ? error.message : String(error)
+      message: error instanceof Error ? error.message : String(error),
     });
     return [];
   }
