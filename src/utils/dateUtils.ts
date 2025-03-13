@@ -3,7 +3,7 @@ export const formatDate = (timestamp: number): string => {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const MS_PER_DAY = 24 * 60 * 60 * 1000;
-  
+
   const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
     year: "numeric",
     month: "short",
