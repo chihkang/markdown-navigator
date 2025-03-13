@@ -13,7 +13,7 @@ import {
 } from "@raycast/api";
 import { MarkdownFile, MAX_VISIBLE_TAGS } from "../types/markdownTypes";
 import { openWithEditor, moveToTrash } from "../utils/fileOperations";
-import { isSystemTag, getSystemTag, sortTags } from "../utils/tagOperations";
+import { isSystemTag, getSystemTag, sortTags, filterDisplayTags } from "../utils/tagOperations";
 import path from "path";
 import fs from "fs";
 import { exec } from "child_process";
@@ -135,12 +135,18 @@ export function FileListItem({
     </>
   );
 
+  // Filter tags before sorting and rendering
+  const filteredTags = filterDisplayTags(file.tags, showColorTags);
+  console.log(`Filtered tags for ${file.name}:`, filteredTags); // Log filtered tags
+
   // Sort tags with system tags first
-  const sortedTags = sortTags(file.tags);
+  const sortedTags = sortTags(filteredTags);
 
   // Limit visible tags
   const visibleTags = sortedTags.slice(0, MAX_VISIBLE_TAGS);
   const hiddenTagsCount = sortedTags.length - visibleTags.length;
+
+  console.log(`Rendering tags for ${file.name}:`, visibleTags); // Log tags being rendered
 
   // Create a Date object from the timestamp for the tooltip
   const lastModifiedDate = new Date(file.lastModified);
@@ -155,17 +161,22 @@ export function FileListItem({
           text: formatDate(file.lastModified),
           tooltip: `Last modified: ${lastModifiedDate.toLocaleString()}`,
         },
-        ...visibleTags.map((tag) => {
-          const systemTag = getSystemTag(tag);
-          const isSystem = isSystemTag(tag);
+        ...visibleTags
+          .filter((tag) => tag && typeof tag === "string" && tag.length > 0)
+          .map((tag) => {
+            const systemTag = getSystemTag(tag);
+            const isSystem = isSystemTag(tag);
 
-          return {
-            tag: {
-              value: tag,
-              color: showColorTags && isSystem ? getTagTintColor(isSystem, systemTag) : undefined,
-            },
-          };
-        }),
+            // Truncate tags to 15 characters to avoid rendering issues
+            const truncatedTag = tag.length > 15 ? `${tag.substring(0, 12)}…` : tag;
+
+            return {
+              tag: {
+                value: truncatedTag,
+                color: showColorTags && isSystem ? getTagTintColor(isSystem, systemTag) : undefined,
+              },
+            };
+          }),
         ...(hiddenTagsCount > 0
           ? [
               {
@@ -220,7 +231,6 @@ export function FileListItem({
             />
           </ActionPanel.Section>
 
-          {/* Add Tag Management Section */}
           <ActionPanel.Section>
             <Action
               title="Browse Tags"

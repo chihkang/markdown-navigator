@@ -29,33 +29,39 @@ export const extractTags = (filePath: string): string[] => {
     const content = fs.readFileSync(filePath, "utf8");
     const tags: string[] = [];
 
-    // Find inline tags #tag
-    const inlineTagsMatch = content.match(/#([a-zA-Z0-9_\u4e00-\u9fa5](?:-?[a-zA-Z0-9_\u4e00-\u9fa5])*)/g);
+    // Extract inline tags (e.g., #tag), but exclude those inside Markdown links like [text](#tag)
+    const inlineTagsMatch = content.match(/(?<!\[[^\]]*)\#([a-zA-Z0-9_\u4e00-\u9fa5](?:-?[a-zA-Z0-9_\u4e00-\u9fa5])*)\b(?![^\[]*\])/g);
     if (inlineTagsMatch) {
+      console.log(`Raw inline tags for ${filePath}:`, inlineTagsMatch); // Log raw inline tags
       const filteredTags = inlineTagsMatch
-        .map((t) => t.substring(1))
-        .filter((tag) => !isColorTag(tag) && !isNumericTag(tag)); // Filter out color code tags and numeric tags
-
+        .map((t) => t.substring(1).trim()) // Remove "#" and trim whitespace
+        .filter((tag) => tag.length > 0 && !isColorTag(tag) && !isNumericTag(tag)); // Exclude blank, color, and numeric tags
+      console.log(`Filtered inline tags for ${filePath}:`, filteredTags); // Log filtered inline tags
       tags.push(...filteredTags);
     }
 
-    // Find the tag in the YAML frontmatter
+    // Extract tags from YAML frontmatter
     const frontmatterMatch = content.match(/^\s*---\n([\s\S]*?)\n---/);
     if (frontmatterMatch) {
       const frontmatter = frontmatterMatch[1];
       const tagsMatch = frontmatter.match(/tags:\s*\[(.*?)\]|tags:\s*(.+)/);
       if (tagsMatch) {
         const tagList = tagsMatch[1] || tagsMatch[2];
+        console.log(`Raw YAML tags for ${filePath}:`, tagList); // Log raw YAML tags
         const frontmatterTags = tagList
-          .split(/,\s*/)
-          .map((t) => t.trim().replace(/['"]/g, ""))
-          .filter((tag) => Boolean(tag) && !isNumericTag(tag));
+          .split(/,\s*/) // Split by comma and optional whitespace
+          .map((t) => t.trim().replace(/['"]/g, "")) // Trim and remove quotes
+          .filter((tag) => tag.length > 0) // Filter out blank tags immediately
+          .filter((tag) => !isNumericTag(tag) && !isColorTag(tag)); // Exclude numeric and color tags
+        console.log(`Filtered YAML tags for ${filePath}:`, frontmatterTags); // Log filtered YAML tags
         tags.push(...frontmatterTags);
       }
     }
 
-    // Remove duplicates and return
-    return Array.from(new Set(tags.filter(Boolean)));
+    // Remove duplicates and ensure no blank tags remain
+    const finalTags = Array.from(new Set(tags.filter((tag) => tag.length > 0)));
+    console.log(`Final tags for ${filePath}:`, finalTags); // Log the final tags
+    return finalTags;
   } catch (error) {
     showFailureToast({
       title: `Error extracting tags from ${filePath}`,
