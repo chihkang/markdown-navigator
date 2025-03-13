@@ -1,4 +1,3 @@
-// src/components/FileListItem.tsx
 import {
   List,
   ActionPanel,
@@ -12,7 +11,7 @@ import {
   openCommandPreferences,
 } from "@raycast/api";
 import { MarkdownFile } from "../types/markdownTypes";
-import { openWithEditor, moveToTrash } from "../utils/fileOperations";
+import { openWithEditor, moveToTrash, checkEditorExists, getDefaultEditor } from "../utils/fileOperations";
 import { isSystemTag, getSystemTag, sortTags, filterDisplayTags } from "../utils/tagOperations";
 import path from "path";
 import fs from "fs";
@@ -20,6 +19,7 @@ import { exec } from "child_process";
 import { showFailureToast } from "@raycast/utils";
 import { formatDate } from "../utils/dateUtils";
 import { getTagTintColor } from "../utils/tagColorUtils";
+import { useState, useEffect } from "react";
 
 interface FileListItemProps {
   file: MarkdownFile;
@@ -37,18 +37,21 @@ interface FileListItemProps {
   setSelectedTag: (tag: string | null) => void;
 }
 
-// 定義最大顯示長度（可根據實際 UI 需求調整）
+// Define the maximum display length (can be adjusted according to actual UI requirements)
 const MAX_DISPLAY_LENGTH = 15;
 
-// 計算可顯示的標籤
-const getVisibleTags = (tags: string[] | undefined, maxDisplayLength: number): { visible: string[]; hiddenCount: number } => {
-  // 如果 tags 為 undefined，預設為空陣列
+// Define the maximum display length (can be adjusted according to actual UI requirements)
+const getVisibleTags = (
+  tags: string[] | undefined,
+  maxDisplayLength: number,
+): { visible: string[]; hiddenCount: number } => {
+  // If tags is undefined, the default is an empty array.
   const safeTags = tags || [];
-  
-  // 按長度排序標籤，最短的優先
+
+  // If tags is undefined, the default is an empty array.
   const sortedTags = [...safeTags].sort((a, b) => a.length - b.length);
 
-  // 如果連最短的標籤都超過最大顯示長度，直接返回 "+N"
+  // If even the shortest label exceeds the maximum display length, return "+N" directly
   if (sortedTags.length > 0 && sortedTags[0].length > maxDisplayLength) {
     return { visible: [], hiddenCount: sortedTags.length };
   }
@@ -56,7 +59,7 @@ const getVisibleTags = (tags: string[] | undefined, maxDisplayLength: number): {
   let visible: string[] = [];
   let currentLength = 0;
 
-  // 至少顯示一個最短的標籤（如果有）
+  // Show at least the shortest tag (if any)
   for (const tag of sortedTags) {
     const tagLength = tag.length;
     if (currentLength === 0 || currentLength + tagLength <= maxDisplayLength) {
@@ -71,7 +74,7 @@ const getVisibleTags = (tags: string[] | undefined, maxDisplayLength: number): {
   return { visible, hiddenCount };
 };
 
-// 截斷標籤（如果需要）
+// Truncate labels (if necessary)
 const truncateTag = (tag: string, maxLength: number): string => {
   if (tag.length <= maxLength) return tag;
   return `${tag.substring(0, maxLength - 1)}…`;
@@ -175,6 +178,18 @@ export function FileListItem({
     </>
   );
 
+  // Check if the default editor exists
+  const defaultEditor = getDefaultEditor();
+  const [editorExists, setEditorExists] = useState<boolean>(false);
+
+  useEffect(() => {
+    async function checkEditor() {
+      const exists = await checkEditorExists(defaultEditor);
+      setEditorExists(exists);
+    }
+    checkEditor();
+  }, [defaultEditor]);
+
   // Filter tags before sorting and rendering
   const filteredTags = filterDisplayTags(file.tags, showColorTags) || [];
   console.log(`Filtered tags for ${file.name}:`, filteredTags); // Log filtered tags
@@ -232,7 +247,21 @@ export function FileListItem({
       actions={
         <ActionPanel>
           <ActionPanel.Section>
-            <Action title="Open with Editor" icon={Icon.BlankDocument} onAction={() => openWithEditor(file.path)} />
+            {editorExists && (
+              <Action
+                title="Open with Editor"
+                icon={Icon.BlankDocument}
+                onAction={() => openWithEditor(file.path)}
+              />
+            )}
+            {!editorExists && (
+              <Action
+                title="Set Default Editor"
+                icon={Icon.Gear}
+                onAction={openCommandPreferences}
+                shortcut={{ modifiers: ["cmd"], key: "p" }}
+              />
+            )}
             <Action
               title="Open in Default App"
               icon={Icon.Document}
