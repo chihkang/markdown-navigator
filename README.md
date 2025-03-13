@@ -1,5 +1,7 @@
 # Markdown Navigator
 
+![extension-icon](./assets/extension-icon.png)
+
 A powerful Raycast extension for managing and navigating your Markdown files with ease.
 
 ## Features
