@@ -146,7 +146,7 @@ export default function Command() {
         const newLimit = prevLimit + LOAD_INCREMENT;
         console.log(`Increasing load limit from ${prevLimit} to ${newLimit}`);
 
-        // 在狀態更新後顯示 Toast
+        // Display a Toast after the status is updated
         setTimeout(() => {
           showToast({
             style: Toast.Style.Success,
