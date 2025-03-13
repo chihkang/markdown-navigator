@@ -46,7 +46,7 @@ The extension requires a valid Markdown directory to be set in preferences:
 
 ### File Actions
 
-- **Open in Default App**: Press `⏎`
+- **Open in Default App**: Press `Enter`
 - **Open With...**: Press `⌘` + `⇧` + `O` to choose an application
 - **Show in Finder**: Press `⌘` + `F`
 - **Copy Path**: Press `⌘` + `⇧` + `C`
@@ -128,7 +128,7 @@ The extension initially loads a limited number of files for better performance. 
 
 ## Support
 
-If you encounter any issues or have suggestions for improvements, please submit an issue on the [GitHub repository](https://github.com/raycast/extensions).
+If you encounter any issues or have suggestions for improvements, please submit an issue on the [GitHub repository](https://github.com/raycast/extensions/issues).
 
 ## License
 
