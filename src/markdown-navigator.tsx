@@ -110,13 +110,13 @@ export default function Command() {
   }, [data, searchText, selectedTag]);
 
   console.log("Filtered data count:", filteredData.length);
-  
+
   const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
-  
+
   const paginatedData = useMemo(() => {
     return filteredData.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE);
   }, [filteredData, currentPage]);
-  
+
   console.log("Paginated data count:", paginatedData.length);
 
   // Use useMemo to optimize the grouping operation
@@ -139,7 +139,7 @@ export default function Command() {
     await clearMarkdownFilesCache();
     revalidate();
   }, [revalidate]);
-  
+
   // Navigate to the Create File form
   const showCreateFileForm = useCallback(() => {
     push(
@@ -203,25 +203,28 @@ export default function Command() {
     push(<TagSearchList tags={allTags} onTagSelect={handleTagSelect} selectedTag={selectedTag} showSections={true} />);
   }, [push, allTags, handleTagSelect, selectedTag]);
 
-  const commonActionsProps = useMemo(() => ({
-    showCreateFileForm,
-    revalidate,
-    loadMoreFiles,
-    showColorTags,
-    setShowColorTags,
-    selectedTag,
-    setSelectedTag,
-    showTagSearchList,
-  }), [
-    showCreateFileForm, 
-    revalidate, 
-    loadMoreFiles, 
-    showColorTags, 
-    setShowColorTags, 
-    selectedTag, 
-    setSelectedTag, 
-    showTagSearchList
-  ]);
+  const commonActionsProps = useMemo(
+    () => ({
+      showCreateFileForm,
+      revalidate,
+      loadMoreFiles,
+      showColorTags,
+      setShowColorTags,
+      selectedTag,
+      setSelectedTag,
+      showTagSearchList,
+    }),
+    [
+      showCreateFileForm,
+      revalidate,
+      loadMoreFiles,
+      showColorTags,
+      setShowColorTags,
+      selectedTag,
+      setSelectedTag,
+      showTagSearchList,
+    ],
+  );
 
   // Common actions for both main view and empty view
   const commonActions = <CommonActions {...commonActionsProps} />;
@@ -246,15 +249,18 @@ export default function Command() {
     console.log("Search text changed:", text);
   }, []);
 
-  const handleSelectionChange = useCallback((id: string | null) => {
-    if (id) {
-      const file = paginatedData.find((f) => f.path === id);
-      if (file) {
-        setSelectedFolder(file.folder);
-        console.log("Selected folder:", file.folder);
+  const handleSelectionChange = useCallback(
+    (id: string | null) => {
+      if (id) {
+        const file = paginatedData.find((f) => f.path === id);
+        if (file) {
+          setSelectedFolder(file.folder);
+          console.log("Selected folder:", file.folder);
+        }
       }
-    }
-  }, [paginatedData]);
+    },
+    [paginatedData],
+  );
 
   return (
     <List
