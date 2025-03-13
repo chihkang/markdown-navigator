@@ -1,5 +1,5 @@
 import { List, showToast, Toast, Icon, getPreferenceValues, useNavigation, Color } from "@raycast/api";
-import { usePromise } from "@raycast/utils";
+import { usePromise, showFailureToast } from "@raycast/utils";
 import { useState, useEffect, useCallback } from "react";
 import fs from "fs";
 import { getMarkdownFiles } from "./utils/fileOperations";
@@ -33,8 +33,7 @@ export default function Command() {
   // Validate markdownDir
   useEffect(() => {
     if (!markdownDir || !fs.existsSync(markdownDir)) {
-      showToast({
-        style: Toast.Style.Failure,
+      showFailureToast({
         title: "Invalid Markdown Directory",
         message: "Please set a valid directory in preferences.",
       });
@@ -43,20 +42,27 @@ export default function Command() {
     }
   }, [markdownDir]);
 
+
   // Initialize total files count
   useEffect(() => {
     const getTotalFiles = async () => {
       try {
+        if (!markdownDir || !fs.existsSync(markdownDir)) {
+          console.log("Invalid markdown directory, skipping file count");
+          return;
+        }
+        
         const allFiles = await getMarkdownFiles();
         setTotalFiles(allFiles.length);
-        console.log(`Total files: ${allFiles.length}`);
+        console.log(`Total files in ${markdownDir}: ${allFiles.length}`);
       } catch (error) {
-        console.error("Error getting total files:", error);
+        console.error(`Error getting total files from ${markdownDir}:`, error);
       }
     };
-
+  
     getTotalFiles();
-  }, []);
+  }, [markdownDir]);
+  
 
   // Define the fetch function
   const fetchMarkdownFiles = useCallback(async () => {
@@ -95,11 +101,11 @@ export default function Command() {
   // Filtering and paging data
   const filteredData = data
     ? data.filter(
-        (file) =>
-          (file.name.toLowerCase().includes(searchText.toLowerCase()) ||
-            file.folder.toLowerCase().includes(searchText.toLowerCase())) &&
-          (!selectedTag || file.tags.includes(selectedTag)),
-      )
+      (file) =>
+        (file.name.toLowerCase().includes(searchText.toLowerCase()) ||
+          file.folder.toLowerCase().includes(searchText.toLowerCase())) &&
+        (!selectedTag || file.tags.includes(selectedTag)),
+    )
     : [];
   console.log("Filtered data count:", filteredData.length);
 
@@ -128,10 +134,13 @@ export default function Command() {
     if (data && data.length > 0 && !rootDirectory) {
       const firstFilePath = data[0].path;
       const folderPath = path.dirname(firstFilePath);
-      setRootDirectory(folderPath === markdownDir ? markdownDir : folderPath);
-      console.log("Set root directory:", rootDirectory);
+      const newRootDirectory = folderPath === markdownDir ? markdownDir : folderPath;
+      
+      setRootDirectory(newRootDirectory);
+      console.log("Set root directory:", newRootDirectory);
     }
-  }, [data, rootDirectory]);
+  }, [data, rootDirectory, markdownDir]);
+  
 
   // Load more files action
   const loadMoreFiles = () => {
@@ -139,12 +148,17 @@ export default function Command() {
       setLoadLimit((prevLimit) => {
         const newLimit = prevLimit + LOAD_INCREMENT;
         console.log(`Increasing load limit from ${prevLimit} to ${newLimit}`);
+        
+        // 在狀態更新後顯示 Toast
+        setTimeout(() => {
+          showToast({
+            style: Toast.Style.Success,
+            title: "Loading more files",
+            message: `Increasing limit from ${prevLimit} to ${newLimit}`,
+          });
+        }, 0);
+        
         return newLimit;
-      });
-      showToast({
-        style: Toast.Style.Success,
-        title: "Loading more files",
-        message: `Increasing limit from ${loadLimit} to ${loadLimit + LOAD_INCREMENT}`,
       });
     } else {
       showToast({
@@ -154,12 +168,17 @@ export default function Command() {
       });
     }
   };
+  
 
   // Handle tag selection
   const handleTagSelect = (tag: string) => {
     setSelectedTag(tag || null);
     setCurrentPage(0);
     console.log("Selected tag:", tag);
+    // Force revalidation of data
+    setTimeout(() => {
+      revalidate();
+    }, 100);
   };
 
   // Show tag search list

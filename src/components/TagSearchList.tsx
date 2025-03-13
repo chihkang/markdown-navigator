@@ -1,5 +1,5 @@
 // src/components/TagSearchList.tsx
-import { List, ActionPanel, Action, Icon, Color } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, Color, useNavigation } from "@raycast/api";
 import { isSystemTag, getSystemTag } from "../utils/tagOperations";
 
 interface TagSearchListProps {
@@ -10,6 +10,7 @@ interface TagSearchListProps {
 }
 
 export function TagSearchList({ tags, onTagSelect, selectedTag, showSections = true }: TagSearchListProps) {
+  const { pop } = useNavigation();
   console.log("TagSearchList rendered with tags:", tags);
   console.log("Selected tag:", selectedTag);
   console.log("Show sections:", showSections);
@@ -21,6 +22,12 @@ export function TagSearchList({ tags, onTagSelect, selectedTag, showSections = t
   console.log("System tags:", systemTags);
   console.log("Custom tags:", customTags);
 
+  // Process tab selection and return to main page
+  const handleTagSelection = (tag: string) => {
+    onTagSelect(tag);
+    pop();
+  };
+
   if (showSections && (systemTags.length > 0 || customTags.length > 0)) {
     return (
       <List navigationTitle="Filter by Tags">
@@ -30,20 +37,20 @@ export function TagSearchList({ tags, onTagSelect, selectedTag, showSections = t
           accessories={[{ text: `${tags.length} tags` }]}
           actions={
             <ActionPanel>
-              <Action title="Clear Tag Filter" onAction={() => onTagSelect("")} />
+              <Action title="Clear Tag Filter" onAction={() => handleTagSelection("")} />
             </ActionPanel>
           }
         />
 
         {systemTags.length > 0 && (
           <List.Section title="System Tags">
-            {systemTags.map((tag) => renderTagItem(tag, true, onTagSelect, selectedTag))}
+            {systemTags.map((tag) => renderTagItem(tag, true, handleTagSelection, selectedTag))}
           </List.Section>
         )}
 
         {customTags.length > 0 && (
           <List.Section title="Custom Tags">
-            {customTags.map((tag) => renderTagItem(tag, false, onTagSelect, selectedTag))}
+            {customTags.map((tag) => renderTagItem(tag, false, handleTagSelection, selectedTag))}
           </List.Section>
         )}
       </List>
@@ -67,14 +74,14 @@ export function TagSearchList({ tags, onTagSelect, selectedTag, showSections = t
           accessories={[{ text: `${tags.length} tags` }]}
           actions={
             <ActionPanel>
-              <Action title="Clear Tag Filter" onAction={() => onTagSelect("")} />
+              <Action title="Clear Tag Filter" onAction={() => handleTagSelection("")} />
             </ActionPanel>
           }
         />
 
         {sortedTags.map((tag) => {
           const isSystem = isSystemTag(tag);
-          return renderTagItem(tag, isSystem, onTagSelect, selectedTag);
+          return renderTagItem(tag, isSystem, handleTagSelection, selectedTag);
         })}
       </List>
     );

@@ -17,7 +17,7 @@ export const isNumericTag = (tag: string): boolean => {
 export const isSystemTag = (tag: string): boolean => {
   return SYSTEM_TAGS.some(
     (systemTag) =>
-      tag.toLowerCase() === systemTag.id.toLowerCase() || tag.toLowerCase().includes(systemTag.id.toLowerCase()),
+      tag.toLowerCase() === systemTag.id.toLowerCase(),
   );
 };
 
@@ -25,7 +25,7 @@ export const isSystemTag = (tag: string): boolean => {
 export const getSystemTag = (tag: string): SystemTag | undefined => {
   return SYSTEM_TAGS.find(
     (systemTag) =>
-      tag.toLowerCase() === systemTag.id.toLowerCase() || tag.toLowerCase().includes(systemTag.id.toLowerCase()),
+      tag.toLowerCase() === systemTag.id.toLowerCase(),
   );
 };
 
@@ -36,7 +36,7 @@ export const extractTags = (filePath: string): string[] => {
     const tags: string[] = [];
 
     // Find inline tags #tag
-    const inlineTagsMatch = content.match(/#([a-zA-Z0-9_\u4e00-\u9fa5-]+)/g); // Supports English and Chinese tags
+    const inlineTagsMatch = content.match(/#([a-zA-Z0-9_\u4e00-\u9fa5](?:-?[a-zA-Z0-9_\u4e00-\u9fa5])*)/g);
     if (inlineTagsMatch) {
       const filteredTags = inlineTagsMatch
         .map((t) => t.substring(1))
@@ -46,7 +46,7 @@ export const extractTags = (filePath: string): string[] => {
     }
 
     // Find the tag in the YAML frontmatter
-    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    const frontmatterMatch = content.match(/^\s*---\n([\s\S]*?)\n---/);
     if (frontmatterMatch) {
       const frontmatter = frontmatterMatch[1];
       const tagsMatch = frontmatter.match(/tags:\s*\[(.*?)\]|tags:\s*(.+)/);
@@ -76,7 +76,7 @@ export const sortTags = (tags: string[]): string[] => {
 
     if (aIsSystem && !bIsSystem) return -1;
     if (!aIsSystem && bIsSystem) return 1;
-    return a.localeCompare(b);
+    return a.localeCompare(b, "en-US");
   });
 };
 
@@ -91,7 +91,7 @@ export const getAllUniqueTags = (files: { tags: string[] }[], showColorTags: boo
       }
     });
   });
-  return Array.from(allTags).sort();
+  return Array.from(allTags).sort((a, b) => a.localeCompare(b, "en-US"));
 };
 
 // Filter the displayed tags
