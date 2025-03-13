@@ -73,7 +73,7 @@ export function CreateFileForm({ rootDirectory, currentFolder, onFileCreated }: 
     } catch (error) {
       showFailureToast({
         title: "Failed to create file",
-        message: error instanceof Error ? error.message : String(error)
+        message: error instanceof Error ? error.message : String(error),
       });
     } finally {
       setIsCreating(false);

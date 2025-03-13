@@ -19,7 +19,6 @@ import fs from "fs";
 import { exec } from "child_process";
 import { showFailureToast } from "@raycast/utils";
 
-
 interface FileListItemProps {
   file: MarkdownFile;
   showColorTags: boolean;
@@ -204,14 +203,14 @@ export function FileListItem({
         }),
         ...(hiddenTagsCount > 0
           ? [
-            {
-              tag: {
-                value: `+${hiddenTagsCount}`,
-                color: Color.SecondaryText,
+              {
+                tag: {
+                  value: `+${hiddenTagsCount}`,
+                  color: Color.SecondaryText,
+                },
+                tooltip: `${hiddenTagsCount} more tags: ${sortedTags.slice(MAX_VISIBLE_TAGS).join(", ")}`,
               },
-              tooltip: `${hiddenTagsCount} more tags: ${sortedTags.slice(MAX_VISIBLE_TAGS).join(", ")}`,
-            },
-          ]
+            ]
           : []),
       ]}
       actions={

@@ -26,7 +26,7 @@ function getTagTintColor(isSystem: boolean, systemTag?: { color?: string }): Col
   if (!isSystem) {
     return Color.SecondaryText;
   }
-  
+
   return TAG_COLOR_MAP[systemTag?.color || ""] || Color.PrimaryText;
 }
 
