@@ -56,7 +56,7 @@ const getVisibleTags = (
     return { visible: [], hiddenCount: sortedTags.length };
   }
 
-  let visible: string[] = [];
+  const visible: string[] = [];
   let currentLength = 0;
 
   // Show at least the shortest tag (if any)
@@ -248,11 +248,7 @@ export function FileListItem({
         <ActionPanel>
           <ActionPanel.Section>
             {editorExists && (
-              <Action
-                title="Open with Editor"
-                icon={Icon.BlankDocument}
-                onAction={() => openWithEditor(file.path)}
-              />
+              <Action title="Open with Editor" icon={Icon.BlankDocument} onAction={() => openWithEditor(file.path)} />
             )}
             {!editorExists && (
               <Action

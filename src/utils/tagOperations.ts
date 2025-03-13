@@ -36,8 +36,10 @@ export const extractTags = (filePath: string): string[] => {
     const content = fs.readFileSync(filePath, "utf8");
     const tags: string[] = [];
 
-    // Extract inline tags (e.g., #tag), but exclude those inside Markdown links like [text](#tag)
-    const inlineTagsMatch = content.match(/(?<!\[[^\]]*)\#([a-zA-Z0-9_\u4e00-\u9fa5](?:-?[a-zA-Z0-9_\u4e00-\u9fa5])*)\b(?![^\[]*\])/g);
+    const inlineTagsMatch = content.match(
+      // eslint-disable-next-line no-useless-escape
+      /(?<!\[[^\]]*)\#([a-zA-Z0-9_\u4e00-\u9fa5](?:-?[a-zA-Z0-9_\u4e00-\u9fa5])*)\b(?![^\[]*\])/g,
+    );
     if (inlineTagsMatch) {
       console.log(`Raw inline tags for ${filePath}:`, inlineTagsMatch); // Log raw inline tags
       const filteredTags = inlineTagsMatch
