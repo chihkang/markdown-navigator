@@ -1,6 +1,11 @@
 # Markdown Navigator Changelog
 
-## [1.0.0] - {PR_MERGE_DATE}
+## [1.0.1] - {PR_MERGE_DATE}
+
+### Fixed
+- System tag's color display issue
+
+## [1.0.0] - 2025-03-16
 
 ### Added
 - Initial release with fast file browsing and search functionality
@@ -10,9 +15,9 @@
 - Multiple template options for new file creation (Basic, Meeting, Blog, Project, Empty)
 - Context-aware file creation in current folder
 - Progressive loading system for large file collections
-- Pagination with keyboard shortcuts (⌘ ← and ⌘ →)
+- Pagination with keyboard shortcuts (⌘← and ⌘→)
 - Folder organization with automatic grouping
-- Tag management interface with dedicated search (⌘ T)
+- Tag management interface with dedicated search (⌘T)
 
 ### Changed
 - Optimized initial loading to 50 files with incremental loading for better performance
